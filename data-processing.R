@@ -39,9 +39,3 @@ ranking_COO <- COO %>% mutate(ref = refugee + oip) %>% arrange(desc(ref))
 
 ### Get the clean data for your region
 
-RBAP_prep <- mysr2023 %>% filter(region_d == "Asia") %>% 
-  arrange(asylum, origin)
-
-
-agg_asylum <- POC(RBAP_asylum, asylumCountry, 2023)
-agg_origin <- POC(RBAP_asylum, originCountry, 2023)
