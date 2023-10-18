@@ -309,7 +309,7 @@ MYSR <- function(YEAR){
   return(master2)}
 
 # POC - function to get the total poc for aggregations, for region, COA or COO ----------
-POC_region <-
+POC <-
   function(mydata,`mygroup`,YEAR) {
     
     groupdata <- mydata %>% group_by({{mygroup}}) 

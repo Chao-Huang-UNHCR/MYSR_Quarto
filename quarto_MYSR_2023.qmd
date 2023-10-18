@@ -9,8 +9,6 @@ embed-resources: true
 
 ## 
 
-
-
 ## Trends in Last Decade
 
 ```{r}
