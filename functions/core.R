@@ -336,4 +336,8 @@ POC <-
 Region_prep <- function(Region, mydata){
   Agg_asylum <- mydata %>% filter(region_d == Region) %>% 
     arrange(asylum, origin)
+  
+  file_path <- file.path("data-master\\", paste0(Region, "_clean_data.Rdata"))
+  assign(paste0(Region, "_clean_data"),Agg_asylum)
+  save(list = paste0(Region, "_clean_data"), file = file_path)
 }
