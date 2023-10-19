@@ -10,6 +10,7 @@
 
 # Region_prep function to get the data disaggregated by COA or COO only belongs to the input region. The regions are simplified as Europe, Americas, Asia, EastAfrica, MENA, SouthAfrica and WestAfrica. It will also automatically save the datasets .Rdata into data-master folder, you can then load the Rdata file into the environment.
 
+
 # Popdata_iso ---------------------------------------
 Popdata_iso <-
   function(mydata) {
@@ -162,11 +163,17 @@ ASR <- function(YEAR){
   #### Combine #####
   df_list <- list(refugee,asy,idpgroup,ridpgroup,ret_final,stategroup,deduct,OIP,oocgroup)
   
-  master <- df_list %>% reduce(full_join,by=c('asylum','origin'))
-  
+  master <- df_list %>% 
+    reduce(full_join,by=c('asylum','origin')) %>% 
+    rename(Returnee_IDP = RIDPs,
+           Returnee_Refugee = Returnee,
+           Stateless_Total = stateless,
+           Stateless_Displaced = deduct,
+           OIP = oip,
+           OOC = othersOfConcern) 
   
   master2 <- Popdata_iso(master)
-  master2 <- master2 %>% mutate(year = YEAR)
+  master2 <- master2 %>% mutate(Year = YEAR)
   return(master2)}
 
 # MYSR----------------------------------------------
@@ -280,9 +287,9 @@ MYSR <- function(YEAR){
   
   ########## Stateless ########
   state <- pd_mysr(table="stateless",year=YEAR, quiet = TRUE)
-  stategroup <- state %>% group_by(asylum, origin) %>% summarise(stateless = sum(totalMidYear))
+  stategroup <- state %>% group_by(asylum, origin) %>% summarise(stateless = sum(totalMidYear, na.rm = T))
   
-  deduct <- state[(state$displacementStatus !='NDP')&(state$totalMidYear>0),]%>%group_by(asylum,origin) %>% summarise(deduct = sum(totalMidYear))
+  deduct <- state[(state$displacementStatus !='NDP')&(state$totalMidYear>0),]%>%group_by(asylum,origin) %>% summarise(deduct = sum(totalMidYear, na.rm = T))
   
   ######## OIP##########
   
@@ -301,11 +308,18 @@ MYSR <- function(YEAR){
   #### Combine #####
   df_list <- list(refugee,asy,idpgroup,ridpgroup,ret_final,stategroup,deduct,OIP,oocgroup)
   
-  master <- df_list %>% reduce(full_join,by=c('asylum','origin'))
+  master <- df_list %>% 
+    reduce(full_join,by=c('asylum','origin')) %>% 
+    rename(Returnee_IDP = RIDPs,
+           Returnee_Refugee = Returnee,
+           Stateless_Total = stateless,
+           Stateless_Displaced = deduct,
+           OIP = oip,
+           OOC = othersOfConcern) 
   
   
   master2 <- Popdata_iso(master)
-  master2 <- master2 %>% mutate(year = YEAR)
+  master2 <- master2 %>% mutate(Year = YEAR)
   return(master2)}
 
 # POC - function to get the total poc for aggregations, for region, COA or COO ----------
@@ -315,29 +329,37 @@ POC <-
     groupdata <- mydata %>% group_by({{mygroup}}) 
     
     summarydata <- groupdata %>% 
-      summarise(refugee = sum(Refugees,na.rm = T),
-                asy = sum(Asylum_Seekers,na.rm = T),
+      summarise(Refugees = sum(Refugees,na.rm = T),
+                Asylum_Seekers = sum(Asylum_Seekers,na.rm = T),
                 IDPs =  sum(IDPs,na.rm = T),
-                RIDPs =  sum(RIDPs,na.rm = T),
-                Returnee =  sum(Returnee,na.rm = T),
-                stateless =  sum(stateless,na.rm = T),
-                deduct =  sum(deduct,na.rm = T),
-                oip = sum(oip, na.rm = T),
-                ooc =  sum(othersOfConcern,na.rm = T)) %>% 
-      mutate(poc = refugee + asy + IDPs + RIDPs + Returnee + stateless - deduct + ooc +oip,
-             fd = refugee + asy + IDPs + oip,
-             year = YEAR) %>% 
-      arrange(desc(poc))
+                Returnee_IDP =  sum(Returnee_IDP,na.rm = T),
+                Returnee_Refugee =  sum(Returnee_Refugee,na.rm = T),
+                Stateless_Total =  sum(Stateless_Total,na.rm = T),
+                Stateless_Displaced =  sum(Stateless_Displaced,na.rm = T),
+                OIP = sum(OIP, na.rm = T),
+                OOC =  sum(OOC,na.rm = T)) %>% 
+      mutate(Stateless_Non_displaced = Stateless_Total - Stateless_Displaced) %>% 
+      mutate(POC_Total = Refugees + Asylum_Seekers + IDPs + Returnee_IDP + Returnee_Refugee + Stateless_Non_displaced + OOC + OIP,
+             Forcibly_Displaced = Refugees + Asylum_Seekers + IDPs + OIP,
+             Year = YEAR) %>% 
+      arrange(desc(POC_Total))
     
     return(summarydata)
   }
 
 # Region_prep ----------------------------------
-Region_prep <- function(Region, mydata){
+Region_prep <- function(Region, Year, Mid_End){
+  
+  if(Mid_End == "Mid"){
+    mydata <- MYSR(Year)
+  } else {
+    mydata <- ASR(Year)
+  }
+  
   Agg_asylum <- mydata %>% filter(region_d == Region) %>% 
     arrange(asylum, origin)
   
-  file_path <- file.path("data-master\\", paste0(Region, "_clean_data.Rdata"))
-  assign(paste0(Region, "_clean_data"),Agg_asylum)
-  save(list = paste0(Region, "_clean_data"), file = file_path)
+  file_path <- file.path("data-master\\", paste0(Region,"_",Year ,"_clean_data.Rdata"))
+  assign(paste0(Region, "_",Year, "_clean_data"),Agg_asylum)
+  save(list = paste0(Region, "_",Year, "_clean_data"), file = file_path)
 }
