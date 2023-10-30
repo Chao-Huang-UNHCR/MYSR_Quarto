@@ -122,6 +122,7 @@ ASR <- function(YEAR){
   
   
   volrep <- concat_ref[concat_ref$decreasesVoluntaryRepatriationTotal>0,]
+  volrep <- volrep  %>% group_by(asylum, origin) %>% summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
   
   
   allrep <- merge(returnee,volrep[,c('asylum','origin','decreasesVoluntaryRepatriationTotal')],by=c('asylum','origin'),all=TRUE)
@@ -269,6 +270,7 @@ MYSR <- function(YEAR){
   
   
   volrep <- concat_ref[concat_ref$decreasesVoluntaryRepatriationTotal>0,]
+  volrep <- volrep  %>% group_by(asylum, origin) %>% summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
   
   
   allrep <- merge(returnee,volrep[,c('asylum','origin','decreasesVoluntaryRepatriationTotal')],by=c('asylum','origin'),all=TRUE)
