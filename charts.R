@@ -181,7 +181,7 @@ ggplot(mysr2023_asr2022_asia_long) +
       hjust = -0.25, size = 8 / .pt) +
     scale_fill_unhcr_d(palette = "pal_unhcr") +
     labs(title = "Population Categories in Asia-Pacific | 2022 - mid-2023",
-    caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+    caption = "Note: Stateless persons have been included in both stateless and their respective displacement categories\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
     scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
     scale_y_discrete(labels = scales::label_wrap(17)) +
     theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y")
