@@ -287,23 +287,95 @@ The newly displaced IDPs during the first half of 2023 were in Myanmar (443,000)
 :::
 :::
 
-# Section
+## Asylum-seekers in Asia-Pacific
 
-## Lists
+::: columns
+::: {.column width="80%"}
 
--   To add bullet points to a slide, use the Markdown list syntax.
--   Works the same way with numbered lists. For example:
+```{r}
+#| label: asylum-seekers-coa
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
 
-```{markdown}
-#| echo: true
-#| eval: false
+coa_as_asia_mysr2023 <- Asia_2023_clean_data %>% mutate(originCountry = replace(originCountry, originCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% mutate(asylumCountry = replace(asylumCountry, asylumCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% group_by(asylumCountry) %>% summarise(Asylum_Seekers = sum(Asylum_Seekers, na.rm = TRUE))
 
-- Item 1
-    - Item 1.1
-    - Item 1.2
-- Item 2
-- Item 3
+top5_as_coo_asia_mysr2023 <- coa_as_asia_mysr2023 %>%
+  arrange(desc(Asylum_Seekers)) %>%  
+  slice_head(n = 5)
+
+ggplot(top5_as_coo_asia_mysr2023) +
+  geom_col(aes(
+    x = Asylum_Seekers,
+    y = reorder(asylumCountry, Asylum_Seekers)),
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.8) +
+  geom_text(aes(
+    x = Asylum_Seekers,
+    y = reorder(asylumCountry, Asylum_Seekers),
+    label = scales::comma(round(Asylum_Seekers, -2)),
+  hjust = -0.5), size = 7) +
+  labs(title = "Asylum-seekers by host country in Asia-Pacific | mid-2023",
+    caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  theme_unhcr(grid = FALSE,
+    axis = "y",
+    axis_title = FALSE,
+    axis_text = "y")+
+  guides(fill="none") + theme(text = element_text(size = 20))
 ```
+:::
+
+::: {.column style="width: 20%; font-size: 40%;"}
+<br><br><br><br>Afghanistan (324,500) is by far the largest country of origin for asylum seekers from the Asia-Pacific region, followed by China (121,000), India (118,100), Iran (77,800) and Bangladesh (65,600). 
+:::
+:::
+
+## Asylum-seekers from Asia-Pacific
+
+::: columns
+::: {.column width="80%"}
+
+```{r}
+#| label: asylum-seekers-coo
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+load("data-master/Global_2023_clean_data.Rdata")
+
+coo_as_asia_mysr2023 <- Global_2023_clean_data %>% mutate(originCountry = replace(originCountry, originCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% mutate(asylumCountry = replace(asylumCountry, asylumCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% filter(region_o == "Asia") %>% group_by(originCountry) %>% summarise(Asylum_Seekers = sum(Asylum_Seekers, na.rm = TRUE)) 
+
+top5_as_coo_asia_mysr2023 <- coo_as_asia_mysr2023 %>%
+  arrange(desc(Asylum_Seekers)) %>%  
+  slice_head(n = 5)
+
+ggplot(top5_as_coo_asia_mysr2023) +
+  geom_col(aes(
+    x = Asylum_Seekers,
+    y = reorder(originCountry, Asylum_Seekers)),
+    fill = unhcr_pal(n = 1, "pal_blue"),
+    width = 0.8) +
+  geom_text(aes(
+    x = Asylum_Seekers,
+    y = reorder(originCountry, Asylum_Seekers),
+    label = scales::comma(round(Asylum_Seekers, -2)),
+    hjust = -0.5), size = 7) +
+  labs(title = "Asylum-seekers globally by country of origin from Asia-Pacific | mid-2023",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  theme_unhcr(grid = FALSE,
+              axis = "y",
+              axis_title = FALSE,
+              axis_text = "y")+
+  guides(fill="none") + theme(text = element_text(size = 20))
+```
+:::
+
+::: {.column style="width: 20%; font-size: 40%;"}
+<br><br><br><br>Afghanistan (324,500) is by far the largest country of origin for asylum seekers from the Asia-Pacific region, followed by China (121,000), India (118,100), Iran (77,800) and Bangladesh (65,600). 
+:::
+:::
 
 ## Incremental list
 

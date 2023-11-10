@@ -365,3 +365,16 @@ Region_prep <- function(Region, Year, Mid_End){
   assign(paste0(Region, "_",Year, "_clean_data"),Agg_asylum)
   save(list = paste0(Region, "_",Year, "_clean_data"), file = file_path)
 }
+
+Global_prep <- function(Year, Mid_End){
+  
+  if(Mid_End == "Mid"){
+    mydata <- MYSR(Year)
+  } else {
+    mydata <- ASR(Year)
+  }
+  
+  file_path <- file.path("data-master\\", paste0("Global_",Year ,"_clean_data.Rdata"))
+  assign(paste0("Global_",Year, "_clean_data"),mydata)
+  save(list = paste0("Global_",Year, "_clean_data"), file = file_path)
+}

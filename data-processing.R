@@ -6,7 +6,7 @@ library(devtools)
 library(usethis)
 
 # No need to login again unless the PW changed
-# pd_login()
+pd_login()
 
 ## import the reference data for funtions
 reference <- read.csv("data-master/reference.csv")
@@ -47,6 +47,9 @@ Region_prep("Asia",2023,"Mid")
 Region_prep("Europe",2022,"End")
 load("data-master/Asia_2023_clean_data.Rdata")
 load("data-master/Asia_2022_clean_data.Rdata")
+
+Global_prep(2023,"Mid")
+load("data-master/global_2023_clean_data.Rdata")
 
 agg_asylum <- POC(Asia_2023_clean_data, asylumCountry, 2023)
 agg_origin <- POC(Asia_2023_clean_data, originCountry, 2023)
