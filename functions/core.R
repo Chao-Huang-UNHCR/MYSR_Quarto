@@ -349,6 +349,54 @@ POC <-
     return(summarydata)
   }
 
+
+
+# Refugee and refugee-like breakdown----------------------------------------------
+REF_MYSR <- function(YEAR){
+
+  ref_mysr <- pd_mysr(table = "refugees", year = YEAR, quiet = TRUE)
+  ref_mysr_fil <- ref_mysr[, c("asylum", "origin","midYearTotal")]
+  ref_mysr_fil <- ref_mysr_fil  %>% group_by(asylum, origin) %>% summarise(midYearTotal = sum(midYearTotal))
+  colnames(ref_mysr_fil)[colnames(ref_mysr_fil) == "midYearTotal"] <- "Refugees"
+  
+  
+  ref_like_mysr = pd_mysr(table = "refugeeLike", year = YEAR, quiet = TRUE)
+  ref_like_mysr_fil <- ref_like_mysr[, c("asylum", "origin","midYearTotal")]
+  ref_like_mysr_fil <- ref_like_mysr_fil  %>% group_by(asylum, origin) %>% summarise(midYearTotal = sum(midYearTotal))
+  colnames(ref_like_mysr_fil)[colnames(ref_like_mysr_fil) == "midYearTotal"] <- "Refugee_like"
+  
+  ref_mysr_disag <- merge(ref_mysr_fil,ref_like_mysr_fil,by=c('asylum','origin'),all=TRUE)
+  ref_mysr_disag[is.na(ref_mysr_disag)] <- 0
+  ref_mysr_disag <- ref_mysr_disag %>% mutate("sum_ref" = ref_mysr_disag[[3]]+ref_mysr_disag[[4]])
+  
+  ref_mysr_disag <- ref_mysr_disag %>% mutate(origin = replace(origin, origin %in% c("HKG","MAC","TIB"),"CHI")) %>% mutate(asylum = replace(asylum, asylum %in% c("HKG","MAC","TIB"),"CHI"), Year = YEAR) 
+  
+  Popdata_iso(ref_mysr_disag)
+}
+
+ref_mysr2023 <- REF_MYSR(2023)
+
+REF_ASR <- function(YEAR){
+  
+  ref_asr <- pd_asr(table = "refugees", year = YEAR, quiet = TRUE)
+  ref_asr_fil <- ref_asr[, c("asylum", "origin","yearEndTotal")]
+  ref_asr_fil <- ref_asr_fil  %>% group_by(asylum, origin) %>% summarise(yearEndTotal = sum(yearEndTotal))
+  colnames(ref_asr_fil)[colnames(ref_asr_fil) == "yearEndTotal"] <- "Refugees"
+  
+  ref_like_asr = pd_asr(table = "refugeeLike", year = YEAR, quiet = TRUE)
+  ref_like_asr_fil <- ref_like_asr[, c("asylum", "origin","yearEndTotal")]
+  ref_like_asr_fil <- ref_like_asr_fil  %>% group_by(asylum, origin) %>% summarise(yearEndTotal = sum(yearEndTotal))
+  colnames(ref_like_asr_fil)[colnames(ref_like_asr_fil) == "yearEndTotal"] <- "Refugee_like"
+  
+  ref_asr_disag <- merge(ref_asr_fil,ref_like_asr_fil,by=c('asylum','origin'),all=TRUE)
+  ref_asr_disag[is.na(ref_asr_disag)] <- 0
+  ref_asr_disag <- ref_asr_disag %>% mutate("sum_ref" = ref_asr_disag[[3]]+ref_asr_disag[[4]])
+  
+  ref_asr_disag <- ref_asr_disag %>% mutate(origin = replace(origin, origin %in% c("HKG","MAC","TIB"),"CHI")) %>% mutate(asylum = replace(asylum, asylum %in% c("HKG","MAC","TIB"),"CHI"), Year = YEAR)
+  
+  Popdata_iso(ref_asr_disag)
+}
+
 # Region_prep ----------------------------------
 Region_prep <- function(Region, Year, Mid_End){
   
@@ -366,6 +414,7 @@ Region_prep <- function(Region, Year, Mid_End){
   save(list = paste0(Region, "_",Year, "_clean_data"), file = file_path)
 }
 
+# Global_prep ----------------------------------
 Global_prep <- function(Year, Mid_End){
   
   if(Mid_End == "Mid"){
@@ -377,4 +426,18 @@ Global_prep <- function(Year, Mid_End){
   file_path <- file.path("data-master\\", paste0("Global_",Year ,"_clean_data.Rdata"))
   assign(paste0("Global_",Year, "_clean_data"),mydata)
   save(list = paste0("Global_",Year, "_clean_data"), file = file_path)
+}
+
+# Refugee_prep ----------------------------------
+Refugee_prep <- function(Year, Mid_End){
+  
+  if(Mid_End == "Mid"){
+    mydata <- REF_MYSR(Year)
+  } else {
+    mydata <- REF_ASR(Year)
+  }
+  
+  file_path <- file.path("data-master\\", paste0("Refugee_",Year,"_clean_data.Rdata"))
+  assign(paste0("Refugee_",Year, "_clean_data"),mydata)
+  save(list = paste0("Refugee_",Year, "_clean_data"), file = file_path)
 }

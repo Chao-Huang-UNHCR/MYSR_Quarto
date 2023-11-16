@@ -276,7 +276,7 @@ ggplot(top5_orig_asia_ref_long) +
 
 ##########Asylum seekers chart###################
 
-#Top 5 COA countries hosting asylum-seekers
+#Top 5 COA countries asylum-seekers
 coa_as_asia_mysr2023 <- Asia_2023_clean_data %>% mutate(originCountry = replace(originCountry, originCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% mutate(asylumCountry = replace(asylumCountry, asylumCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% group_by(asylumCountry) %>% summarise(Asylum_Seekers = sum(Asylum_Seekers, na.rm = TRUE))
 
 top5_as_coo_asia_mysr2023 <- coa_as_asia_mysr2023 %>%
@@ -304,8 +304,10 @@ ggplot(top5_as_coo_asia_mysr2023) +
   guides(fill="none")
 
 
-#Top 5 COO countries hosting asylum-seekers
-coo_as_asia_mysr2023 <- mysr2023 %>% mutate(originCountry = replace(originCountry, originCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% mutate(asylumCountry = replace(asylumCountry, asylumCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% filter(region_o == "Asia") %>% group_by(originCountry) %>% summarise(Asylum_Seekers = sum(Asylum_Seekers, na.rm = TRUE)) 
+#Top 5 COO countries asylum-seekers
+load("data-master/Global_2023_clean_data.Rdata")
+
+coo_as_asia_mysr2023 <- Global_2023_clean_data %>% mutate(originCountry = replace(originCountry, originCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% mutate(asylumCountry = replace(asylumCountry, asylumCountry %in% c("China, Hong Kong SAR","China, Macao SAR"),"China")) %>% filter(region_o == "Asia") %>% group_by(originCountry) %>% summarise(Asylum_Seekers = sum(Asylum_Seekers, na.rm = TRUE)) 
 
 top5_as_coo_asia_mysr2023 <- coo_as_asia_mysr2023 %>%
   arrange(desc(Asylum_Seekers)) %>%  
@@ -384,3 +386,104 @@ ggplot(top5_dis_stateless_asia_mysr2023) +
               axis_title = FALSE,
               axis_text = "y")+
   guides(fill="none")
+
+
+
+
+
+
+load("data-master/Refugee_2023_clean_data.Rdata")
+ref_mysr2023_disag <- Refugee_2023_clean_data
+
+#Refugees by COA
+asy_asia_mysr_disag <- ref_mysr2023_disag %>% filter(region_d == "Asia") %>% group_by(asylumCountry) %>% summarise(Refugees = sum(Refugees, na.rm = TRUE), "Refugee-like" = sum(Refugee_like, na.rm = TRUE), sum_ref = sum(sum_ref, na.rm = TRUE))
+
+top5_asy_asia_ref <- asy_asia_mysr_disag %>%
+  arrange(desc(sum_ref)) %>%  
+  slice_head(n = 5)    
+
+filt_top5_asy_asia_ref_long <- top5_asy_asia_ref %>% select(asylumCountry, Refugees, `Refugee-like`) %>% gather(key = "pop_type", value = "ref_figure", 2:3)
+
+ggplot(filt_top5_asy_asia_ref_long) +
+  geom_col(aes(x = ref_figure,
+               y = reorder(asylumCountry, ref_figure),
+               fill = pop_type),
+           width = 0.7) +
+  geom_text(data = filter(filt_top5_asy_asia_ref_long, ref_figure > 40000),
+            aes(x = ref_figure,
+                y = reorder(asylumCountry, ref_figure),
+                group = pop_type,
+                label = round(ref_figure / 1e6, 2)),
+            position = position_stack(vjust = 0.5),
+            size = 10) +
+  labs(title = "Refugees and people in refugee-like situations hosted in Asia-Pacific | mid-2023",
+       subtitle = "Number of people (million)",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  scale_fill_unhcr_d(palette = "pal_unhcr",
+                     nmax = 10,
+                     order = c(2, 1)) +
+  theme_unhcr(grid = FALSE,
+              axis = "y",
+              axis_title = FALSE,
+              axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+
+#Refugees by COO
+orig_asia_mysr_disag <- ref_mysr2023_disag %>% filter(region_o == "Asia") %>% group_by(originCountry) %>% summarise(Refugees = sum(Refugees, na.rm = TRUE), "Refugee-like" = sum(Refugee_like, na.rm = TRUE), sum_ref = sum(sum_ref, na.rm = TRUE))
+
+top5_orig_asia_ref <- orig_asia_mysr_disag %>%
+  arrange(desc(sum_ref)) %>%  
+  slice_head(n = 5) 
+
+top5_orig_asia_ref_long <- top5_orig_asia_ref %>% select(originCountry, Refugees, `Refugee-like`) %>% gather(key = "pop_type", value = "ref_figure", 2:3)
+
+ggplot(top5_orig_asia_ref_long) +
+  geom_col(aes(x = ref_figure,
+               y = reorder(originCountry, ref_figure),
+               fill = pop_type), width = 0.7) +
+  geom_text(data = filter(top5_orig_asia_ref_long, ref_figure > 40000),
+            aes(x = ref_figure,
+                y = reorder(originCountry, ref_figure),
+                group = pop_type,
+                label = round(ref_figure / 1e6, 2)),
+            position = position_stack(vjust = 0.6), size = 10) +
+  labs(title = "Refugees and people in refugee-like situations from Asia-Pacific | mid-2023",
+       subtitle = "Number of people (million)",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  scale_fill_unhcr_d(palette = "pal_unhcr",
+                     nmax = 10,
+                     order = c(2, 1)) +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+
+
+######Myanmar Chart#########
+mya_mysr2023 <- Asia_2023_clean_data %>% group_by(origin) %>% summarise("Refugees and refugee-like" = sum(Refugees, na.rm = TRUE), "Asylum-Seekers" = sum(Asylum_Seekers, na.rm = TRUE), IDPs = sum(IDPs, na.rm = TRUE), "Returnees (Refugee)" = sum(Returnee_Refugee, na.rm = TRUE), "Returnees (IDP)" = sum(Returnee_IDP, na.rm = TRUE), "Others of Concern" = sum(OOC, na.rm = TRUE), "Stateless" = sum(Stateless_Total, na.rm = TRUE), "Stateless_Displaced" = sum(Stateless_Displaced, na.rm = TRUE)) %>% mutate("Non-Displaced Stateless"= Stateless - Stateless_Displaced) %>% filter(origin == "MYA")
+
+mya_mysr2023 <- mya_mysr2023 %>% select(IDPs, 'Non-Displaced Stateless','Stateless_Displaced', 'Refugees and refugee-like','Returnees (IDP)', 'Asylum-Seekers')
+
+mya_mysr2023_long <- mya_mysr2023 %>%
+  gather(key = "pop_type", value = "pop_figure")
+
+mya_mysr2023_long$stack <- ifelse(mya_mysr2023_long$pop_type %in% c('Non-Displaced Stateless','Stateless_Displaced'), "Stateless", mya_mysr2023_long$pop_type)
+
+custom_order<- c("Asylum-Seekers", "Returnees (IDP)", "Refugees and refugee-like", "Stateless_Displaced", "Non-Displaced Stateless", "IDPs")
+custom_order_stack <- c("Asylum-Seekers", "Returnees (IDP)", "Refugees and refugee-like", "Stateless", "IDPs")
+mya_mysr2023_long$stack <- factor(mya_mysr2023_long$stack, levels = custom_order_stack)
+mya_mysr2023_long$pop_type <- factor(mya_mysr2023_long$pop_type, levels = custom_order)
+
+ggplot(mya_mysr2023_long) +
+  geom_col(aes(x = pop_figure,
+               y = stack,
+               fill = pop_type), width = 0.7, position = "stack") +
+  geom_text(aes(x = pop_figure,
+                y =stack,
+                label = round(pop_figure / 1e6, 2)),
+            position = position_stack(vjust = 0.7), size=6) +
+  labs(title = "Myanmar Situation | mid-2023",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  scale_fill_manual(values = c('Refugees and refugee-like' = "#0072BC", 'Asylum-Seekers' = "#0072BC", IDPs = "#0072BC", 'Non-Displaced Stateless' = "#0072BC", 'Returnees (IDP)' = "#0072BC", 'Stateless_Displaced' = "#CCCCCC"), breaks = 'Stateless_Displaced') +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+
+display_unhcr_all()

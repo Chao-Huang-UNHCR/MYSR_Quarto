@@ -41,7 +41,7 @@ ranking_COO <- COO %>% mutate(Refugee_Mandate = Refugees + OIP) %>%
   select(Year,originCountry, Refugee_Mandate, Refugees, OIP) %>% 
   arrange(desc(Refugee_Mandate))
 
-### Get the clean data for your region
+### Get the clean data for your region or globally
 
 Region_prep("Asia",2023,"Mid")
 Region_prep("Europe",2022,"End")
@@ -50,6 +50,9 @@ load("data-master/Asia_2022_clean_data.Rdata")
 
 Global_prep(2023,"Mid")
 load("data-master/global_2023_clean_data.Rdata")
+
+Refugee_prep(2023,"Mid")
+load("data-master/Refugee_2023_clean_data.Rdata")
 
 agg_asylum <- POC(Asia_2023_clean_data, asylumCountry, 2023)
 agg_origin <- POC(Asia_2023_clean_data, originCountry, 2023)
