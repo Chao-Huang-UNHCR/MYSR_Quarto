@@ -487,3 +487,31 @@ ggplot(mya_mysr2023_long) +
   theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
 
 display_unhcr_all()
+
+
+#########Rohingya Map###########
+
+roh_asr2022 <- Asia_2022_clean_data %>% filter(origin == "MYA") %>% select(Year, asylumCountry, Stateless_Total) %>% arrange(desc(Stateless_Total)) %>% slice_head(n=5)
+roh_mysr2023 <- Asia_2023_clean_data %>% filter(origin == "MYA") %>% select(Year, asylumCountry, Stateless_Total) %>% mutate(Year = ifelse(Year == 2023, "mid-2023",Year)) %>% arrange(desc(Stateless_Total)) %>% slice_head(n=5)
+
+roh_2022_my2023 <- rbind(roh_asr2022,roh_mysr2023)
+
+ggplot(roh_2022_my2023) +
+  geom_col(aes(x = Stateless_Total, 
+               y = fct_rev(reorder(asylumCountry, -Stateless_Total)), 
+               fill = as.character(Year)), 
+           position = position_dodge(0.7), width = 0.6)+
+  geom_text(aes(
+    x = Stateless_Total,
+    y = fct_rev(reorder(asylumCountry, -Stateless_Total)),
+    group = as.character(Year),
+    label = scales::comma(round(Stateless_Total,-2))),
+    position = position_dodge(width = 0.7),
+    hjust = -0.25, size = 8 / .pt) +
+  scale_fill_unhcr_d(palette = "pal_unhcr") +
+  labs(title = "Countries with Rohingya in Asia-Pacific | 2022 - mid-2023",
+       caption = "Note: Both displaced and non-displaced Rohingya included for Myanmar\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
+  scale_y_discrete(labels = scales::label_wrap(17)) +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y")
+
