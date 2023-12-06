@@ -49,26 +49,40 @@ library(scales)
 library(popdata)
 library(tidyverse)
 library(readxl)
+source("functions/core.R")
 
 ##########2014-2022 Data from refugee package###############
 pop <- refugees::population %>% filter(year > 2013)
 
 reference <- read.csv("data-master/reference.csv")
-reference <- reference %>% select(iso_3, UNHCRcode, ctryname, UNHCRBureau)
+reference <- reference %>%
+  select(iso_3, UNHCRcode, ctryname, UNHCRBureau)
 
-pop_reg <- merge(pop,reference, by.x = "coa", by.y = "UNHCRcode", all.x=T) %>% select(-iso_3, -ctryname)
+pop_reg <- merge(pop,reference, by.x = "coa", by.y = "UNHCRcode", all.x=T) %>%
+  select(-iso_3, -ctryname)
 
-pop_asia <- pop_reg %>% filter(UNHCRBureau == "Asia") %>% group_by(year,UNHCRBureau)%>% summarise(Refugees = sum(refugees), asylum_seekers = sum(asylum_seekers), IDPs = sum(idps), "Returnees (Refugee)" = sum(returned_refugees), "Returnees (IDP)" = sum(returned_idps), "Others of Concern" = sum(ooc))
+pop_asia <- pop_reg %>% 
+  filter(UNHCRBureau == "Asia") %>% 
+  group_by(year,UNHCRBureau)%>% 
+  summarise(Refugees = sum(refugees), 
+            asylum_seekers = sum(asylum_seekers), 
+            IDPs = sum(idps), 
+            "Returnees (Refugee)" = sum(returned_refugees), 
+            "Returnees (IDP)" = sum(returned_idps), 
+            "Others of Concern" = sum(ooc))
 
 ndp_sta_decade <- read_excel("data-master/ndp_sta_decade.xlsx")
 
-pop_asia_decade <- pop_asia %>% merge(ndp_sta_decade, by = "year", all.x=T) %>% mutate("Refugees, Refugee-like and Asylum-Seekers" = Refugees + asylum_seekers) %>%  select(year,"Refugees, Refugee-like and Asylum-Seekers", IDPs, "Non-Displaced Stateless", "Returnees (Refugee)", "Returnees (IDP)", "Others of Concern")
+pop_asia_decade <- pop_asia %>% 
+  merge(ndp_sta_decade, by = "year", all.x=T) %>% 
+  mutate("Refugees, Refugee-like and Asylum-Seekers" = Refugees + asylum_seekers) %>%
+  select(year,"Refugees, Refugee-like and Asylum-Seekers", IDPs, "Non-Displaced Stateless", "Returnees (Refugee)", "Returnees (IDP)", "Others of Concern")
 
 #############MYSR Data from function data-master folder################
 load("data-master/Asia_2023_clean_data.Rdata")
 
-mysr2023_asia <- Asia_2023_clean_data %>% mutate(Year = ifelse(Year == 2023, "mid-2023", Year)) %>% merge(reference, by.x = "asylum", by.y = "UNHCRcode", all.x=T) %>% select(Year, Refugees, Asylum_Seekers, IDPs, Returnee_Refugee, Returnee_IDP, Stateless_Total, Stateless_Displaced, OOC) %>% group_by(Year) %>% summarise("Refugees and refugee-like" = sum(Refugees, na.rm = TRUE), "Asylum-Seekers" = sum(Asylum_Seekers, na.rm = TRUE), IDPs = sum(IDPs, na.rm = TRUE), "Returnees (Refugee)" = sum(Returnee_Refugee, na.rm = TRUE), "Returnees (IDP)" = sum(Returnee_IDP, na.rm = TRUE), "Others of Concern" = sum(OOC, na.rm = TRUE), "Stateless" = sum(Stateless_Total, na.rm = TRUE), "Stateless_Displaced" = sum(Stateless_Displaced, na.rm = TRUE)) %>% mutate("Non-Displaced Stateless"= Stateless - Stateless_Displaced)
-  
+mysr2023_asia <- POC(Asia_2023_clean_data,region_d,2023)
+
 agg_mysr2023_asia <- mysr2023_asia %>% mutate("Refugees, Refugee-like and Asylum-Seekers"= mysr2023_asia[[2]]  + mysr2023_asia[[3]]) %>%  select(Year,"Refugees, Refugee-like and Asylum-Seekers", IDPs, "Non-Displaced Stateless", "Returnees (Refugee)", "Returnees (IDP)", "Others of Concern")
 
 colnames(agg_mysr2023_asia)[colnames(agg_mysr2023_asia) == "Year"] <- "year"

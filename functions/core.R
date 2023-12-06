@@ -51,7 +51,17 @@ ASR <- function(YEAR){
   concat_ref <- rbind(ref,ref_like)
   
   ### aggregate refugee figures by country of asylum and country of origin
-  refugee<- concat_ref[,c('asylum','origin','yearEndTotal')]%>% group_by(asylum,origin) %>% summarise(Refugees = sum(yearEndTotal))
+  refugee<- concat_ref[,c('asylum','origin','yearEndTotal')] %>%
+    group_by(asylum,origin) %>% 
+    summarise(Refugees = sum(yearEndTotal))
+  
+  Refugee_reg <- ref %>% 
+    group_by(asylum,origin) %>% 
+    summarise(Refugee_reg = sum(yearEndTotal))
+  
+  Refugee_like <- ref_like %>% 
+    group_by(asylum,origin) %>% 
+    summarise(Refugee_like = sum(yearEndTotal))
   
   ### demo
   
@@ -162,7 +172,7 @@ ASR <- function(YEAR){
     group_by(asylum,origin) %>% summarise(othersOfConcern = sum(totalYearEnd))
   
   #### Combine #####
-  df_list <- list(refugee,asy,idpgroup,ridpgroup,ret_final,stategroup,deduct,OIP,oocgroup)
+  df_list <- list(refugee,Refugee_reg, Refugee_like, asy,idpgroup,ridpgroup,ret_final,stategroup,deduct,OIP,oocgroup)
   
   master <- df_list %>% 
     reduce(full_join,by=c('asylum','origin')) %>% 
@@ -194,7 +204,17 @@ MYSR <- function(YEAR){
   concat_ref <- rbind(ref,ref_like)
   
   ### aggregate refugee figures by country of asylum and country of origin
-  refugee<- concat_ref[,c('asylum','origin','midYearTotal')]%>% group_by(asylum,origin) %>% summarise(Refugees = sum(midYearTotal))
+  refugee<- concat_ref[,c('asylum','origin','midYearTotal')] %>%
+    group_by(asylum,origin) %>% 
+    summarise(Refugees = sum(midYearTotal))
+  
+  Refugee_reg <- ref %>% 
+    group_by(asylum,origin) %>% 
+    summarise(Refugee_reg = sum(midYearTotal))
+  
+  Refugee_like <- ref_like %>% 
+    group_by(asylum,origin) %>% 
+    summarise(Refugee_like = sum(midYearTotal))
   
   
   ### Asylum-seekers ###########
@@ -308,7 +328,7 @@ MYSR <- function(YEAR){
   oocgroup <- ooc %>% group_by(asylum,origin) %>% summarise(othersOfConcern = sum(totalMidYear))
   
   #### Combine #####
-  df_list <- list(refugee,asy,idpgroup,ridpgroup,ret_final,stategroup,deduct,OIP,oocgroup)
+  df_list <- list(refugee,Refugee_reg, Refugee_like,asy,idpgroup,ridpgroup,ret_final,stategroup,deduct,OIP,oocgroup)
   
   master <- df_list %>% 
     reduce(full_join,by=c('asylum','origin')) %>% 
@@ -332,6 +352,8 @@ POC <-
     
     summarydata <- groupdata %>% 
       summarise(Refugees = sum(Refugees,na.rm = T),
+                Refugee_reg = sum(Refugee_reg, na.rm = T),
+                Refugee_like = sum(Refugee_like, na.rm = T),
                 Asylum_Seekers = sum(Asylum_Seekers,na.rm = T),
                 IDPs =  sum(IDPs,na.rm = T),
                 Returnee_IDP =  sum(Returnee_IDP,na.rm = T),
