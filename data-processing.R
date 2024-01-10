@@ -6,15 +6,24 @@ library(devtools)
 library(usethis)
 
 # No need to login again unless the PW changed
-pd_login()
+# pd_login()
+
+MyRegion <- "Asia"
+MyYear <- 2023
 
 ## import the reference data for funtions
 reference <- read.csv("data-master/reference.csv")
 
 source("functions/core.R")
 
-asr2022<- ASR(2022)
-mysr2023 <- MYSR(2023)
+asr2022<- ASR(MyYear-1)
+mysr2023 <- MYSR(MyYear)
+
+Region_prep(MyRegion,MyYear,"Mid")
+Region_prep(MyRegion,MyYear-1,"End")
+
+
+
 
 ## column deduct is for the displaced stateless people, who have been double counted and should be deduplicated from the total PoC
 
@@ -44,8 +53,8 @@ ranking_COO <- COO %>% mutate(Refugee_Mandate = Refugees + OIP) %>%
 ### Get the clean data for your region or globally
 
 Region_prep("Asia",2023,"Mid")
-Region_prep("Europe",2022,"End")
-load("data-master/Asia_2023_clean_data.Rdata")
+Region_prep("Asia",2022,"End")
+load("data-raw/Asia_2023_clean_data.Rdata")
 load("data-master/Asia_2022_clean_data.Rdata")
 
 Global_prep(2023,"Mid")

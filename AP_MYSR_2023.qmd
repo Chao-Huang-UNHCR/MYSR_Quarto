@@ -1,0 +1,940 @@
+---
+title: UNHCR Regional Trends Mid-2023 Forcibly Displaced and Stateless Persons
+subtitle: Regional Bureau for Asia and the Pacific
+format: unhcr-revealjs
+embed-resources: true
+page-layout: article
+---
+
+# Regional Overview {.slide-blue}
+
+## 
+
+::: columns
+::: {.column width="80%"}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#| label: poc-trend-decade
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+library(refugees)
+library(ggplot2)
+library(unhcrthemes)
+library(scales)
+library(popdata)
+library(tidyverse)
+library(readxl)
+library(fs)
+source("functions/core.R")
+
+my_files <- dir_ls("data-master/Plotdata")
+
+lapply(my_files, load, .GlobalEnv)
+
+# Plot1
+MyRegion <- "Asia"
+MyYear <- 2023
+plot_title_region <- "Asia-Pacific"
+
+region_total <- POC(MYSR(MyYear),region_d,MyYear)
+totalPoC <- round(as.numeric(region_total[which(region_total$region_d == MyRegion),"POC_Total"])/1e6,1)
+
+totalFD <- round(as.numeric(region_total[which(region_total$region_d == MyRegion),"Forcibly_Displaced"])/1e6,1)
+
+totalref_region <- round(as.numeric(Plot2[which(Plot2$Year == 'mid_2023'  & Plot2$pop_type == 'Refugees and Refugee-like'),"pop_figure"])/1e6,1) + round(as.numeric(Plot2[which(Plot2$Year == 'mid_2023'  & Plot2$pop_type == 'Asylum-Seekers'),"pop_figure"])/1e6,1)
+
+totalidp_region <- round(as.numeric(Plot2[which(Plot2$Year == 'mid_2023'  & Plot2$pop_type == 'IDPs'),"pop_figure"])/1e6,1)
+
+totalsta_region <- round(as.numeric(Plot2[which(Plot2$Year == 'mid_2023'  & Plot2$pop_type == 'Stateless'),"pop_figure"])/1e6,1)
+
+decade_change <- round(as.numeric((Plot1_label[10,2] - Plot1_label[1,2])*100/Plot1_label[1,2]))
+
+```
+![](\data-master\rbap_poc_bubble_map_mid2023.png)
+:::
+
+::: {.column style="width: 20%; font-size: 40%;"}
+<br><br>[**`r totalPoC` million**]{.text-blue} <br>People UNHCR protects and/or assists in Asia-Pacific <br> <br>[**`r totalFD` million**]{.text-blue} <br>Forcibly displaced in the region, including refugees, people in refugee-like situations, asylum-seekers and IDPs
+:::
+:::
+
+## 
+
+::: columns
+::: {.column width="80%"}
+![](\data-master\rbap_poc_status_map_mid2023.png)
+:::
+
+::: {.column style="width: 20%; font-size: 40%;"}
+<br><br>[**`r totalref_region` million**]{.text-blue} <br>Refugees, including people in refugee-like situations, and asylum-seekers in the region<br> <br>[**`r totalidp_region` million**]{.text-blue} <br>IDPs in the region<br> <br>[**`r totalsta_region` million**]{.text-blue} <br>Stateless persons in the region
+:::
+:::
+
+## Trends in Last Decade
+
+::: columns
+::: {.column width="80%"}
+
+
+```{r}
+
+gg <- ggplot(Plot1) +
+  geom_col(aes(x = year,
+               y = pop_mil,
+               fill = pop_type),
+           width = 0.7)  +
+  scale_fill_unhcr_d(palette = "pal_unhcr_poc",
+                     nmax = 9,
+                     order = c(8,6,9,5,4,1))+
+  scale_y_continuous(breaks = pretty_breaks(n = 6), 
+                     limits = c(0,14.5),
+                     expand = expansion(c(0, 0.2)))+
+  labs(title = paste0("People UNHCR protects and/or assists in the ",plot_title_region, " Region | ", MyYear - 9," - mid_", MyYear),
+       y = "Number of people (million)")+
+  theme_unhcr(grid = FALSE,
+              axis_title = "y")
+
+gg + geom_text(size = 9,
+               data = Plot1_label, 
+               aes(x = year, y = total_poc, label = round(total_poc, 1)), 
+               vjust = -0.5) + 
+  theme(text = element_text(size = 18)) 
+
+```
+:::
+
+::: {.column style="width: 20%; font-size: 40%;"}
+<br><br> - The total population UNHCR protects and/or assists in `r plot_title_region` remains at **`r totalPoC`M** by mid-2023, the highest number on record according to available data. <br> <br> - This is a **`r decade_change`% increase** compared to end-2014 figure from almost a decade ago.
+:::
+:::
+
+## Population figures in Asia-Pacific
+
+::: columns
+::: {.column width="80%"}
+```{r}
+#| label: poc-2022-mysr2023
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+ggplot(Plot2) +
+  geom_col(aes(x = pop_figure, 
+               y = fct_rev(reorder(pop_type, -pop_figure)), 
+               fill = as.character(Year)), 
+           position = position_dodge(0.7), width = 0.6)+
+  geom_text(aes(
+    x = pop_figure,
+    y = fct_rev(reorder(pop_type, -pop_figure)),
+    group = as.character(Year),
+    label = scales::comma(round(pop_figure,-2))),
+    position = position_dodge(width = 0.7),
+    hjust = -0.05, size = 6.5) +
+  scale_fill_unhcr_d(palette = "pal_unhcr") +
+  labs(title = paste0("Population Categories in ", plot_title_region, " | ", MyYear-1, " - mid_", MyYear),
+       caption = "Note: Stateless persons have been included in both stateless and their respective displacement categories\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
+  scale_y_discrete(labels = scales::label_wrap(17)) +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") +
+  theme(text = element_text(size = 18)) 
+
+```
+:::
+
+::: {.column style="width: 20%; font-size: 40%;"}
+<br><br><br> - **6% increase** in the total number of forcibly displaced people compared to end-2022 <br> <br> - Refugees (including people in refugee-like situation) and asylum-seekers increased by 5% from 7M to 7.4M <br> <br> - IDPs increased to 5.3M, a **7% increase** from 5M at end-2022
+:::
+:::
+
+# Refugees & People in Refugee-like Situations {.slide-blue}
+
+## Refugees from `r plot_title_region` 
+
+::: columns
+::: {.column width="80%"}
+```{r}
+#| label: refugees-coo
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot(Plot3) +
+  geom_col(aes(x = ref_figure,
+               y = reorder(originCountry, ref_figure),
+               fill = pop_type), width = 0.7) +
+  geom_text(data = filter(Plot3, ref_figure > 40000),
+            aes(x = ref_figure,
+                y = reorder(originCountry, ref_figure),
+                group = pop_type,
+                label = round(ref_figure / 1e6, 2)),
+            position = position_stack(vjust = 0.75), size = 6) +
+  labs(title = paste0("Refugees and people in refugee-like situations from ",  plot_title_region, " | mid_", MyYear),
+       subtitle = "Number of people (millions)",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  scale_fill_unhcr_d(palette = "pal_unhcr",
+                     nmax = 10,
+                     order = c(2, 1)) +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+
+```
+:::
+
+::: {.column style="width: 20%; font-size: 38%;"}
+<br>-The Afghan refugee population (including those in refugee-like situations) continues to be the largest in the region with 5.6 million hosted in the region. <br><br>-Afghanistan overtook Ukraine to become the second largest country of origin of refugees (including refugee-like) globally, with 6.1 million hosted by 106 countries globally. <br><br>-Myanmar is the second largest country of origin of refugees (including refugee-like) in `r plot_title_region` and the sixth largest globally. There are 1.27 million refugees and people in refugee-like situations from Myanmar. The vast majority (99.7%) are hosted within the region, with over three-quarters hosted in Bangladesh.
+:::
+:::
+
+## SDG 10.7.4
+
+::: columns
+::: {.column width="80%"}
+```{r}
+#| label: refugees-coo-sdg
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot(Plot4) + 
+  geom_col(aes(x = reorder(country, sdg), y = sdg),
+           fill = unhcr_pal(n=1, "pal_blue"))+
+  coord_flip()+
+  labs(title = paste0("Sustainable Development Goals indicator 10.7.4 | mid_", MyYear),
+       x = "Countries" , y = "SDG Indicator 10.7.4") +
+  geom_text(aes(x = country, 
+                y = sdg, 
+                label = scales::comma(sdg), 
+                hjust = -0.1))+
+  scale_y_continuous(expand = expansion(c(0,0.1)))+
+  theme_unhcr(grid = FALSE,
+              axis = "y",
+              axis_title = FALSE,
+              axis_text = "y")
+
+```
+
+## Refugees in `r plot_title_region` 
+
+::: columns
+::: {.column width="80%"}
+```{r}
+#| label: refugees-coa
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot(Plot5) +
+  geom_col(aes(x = ref_figure,
+               y = reorder(asylumCountry, ref_figure),
+               fill = pop_type), width = 0.7) +
+  geom_text(data = filter(Plot5, ref_figure > 40000),
+            aes(x = ref_figure,
+                y = reorder(asylumCountry, ref_figure),
+                group = pop_type,
+                label = round(ref_figure / 1e6, 2)),
+            position = position_stack(vjust = 0.75), size = 6) +
+  labs(title = paste0("Refugees and people in refugee-like situations hosted in ",  plot_title_region, " | mid_", MyYear),
+       subtitle = "Number of people (millions)",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  scale_fill_unhcr_d(palette = "pal_unhcr",
+                     nmax = 10,
+                     order = c(2, 1)) +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+```
+:::
+
+::: {.column style="width: 20%; font-size: 40%;"}
+<br>-The Islamic Republic of Iran and Türkiye each hosted 3.4 million refugees (including refugee-like), the largest populations worldwide. The vast majority of refugees and people in refugee-like situations in the Islamic Republic of Iran are Afghans.<br><br>-Pakistan is the fifth-largest refugee hosting country globally, with 2.1M refugees and people in refugee-like situations (almost all of whom are Afghans). <br><br>-Bangladesh is the tenth-largest refugee hosting country, with 961,800 refugees (mainly Rohingya).
+:::
+:::
+
+# Asylum-Seekers {.slide-blue}
+
+## Asylum-seekers from `r plot_title_region` 
+
+::: columns
+::: {.column width="70%"}
+```{r}
+#| label: asylum-seekers-coo
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+
+ggplot(Plot6) +
+  geom_col(aes(
+    x = Asylum_Seekers,
+    y = reorder(originCountry, Asylum_Seekers)),
+    fill = unhcr_pal(n = 1, "pal_blue"),
+    width = 0.8) +
+  geom_text(aes(
+    x = Asylum_Seekers,
+    y = reorder(originCountry, Asylum_Seekers),
+    label = scales::comma(round(Asylum_Seekers, -2)),
+    hjust = -0.1), size = 7) +
+  labs(title = paste0("Refugees and people in refugee-like situations from ",  plot_title_region, " | mid_", MyYear),
+       caption = "Note: China includes Hong Kong, Macau and Tibet\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  theme_unhcr(grid = FALSE,
+              axis = "y",
+              axis_title = FALSE,
+              axis_text = "y")+
+  guides(fill="none") + theme(text = element_text(size = 20))
+
+```
+:::
+
+::: {.column style="width: 30%; font-size: 40%;"}
+<br><br><br><br>Afghanistan (324,500) is by far the largest country of origin for asylum seekers from the Asia-Pacific region, followed by China (121,000), India (118,100), Iran (77,800) and Bangladesh (65,600).
+:::
+:::
+
+## Asylum-seekers in Asia-Pacific
+
+::: columns
+::: {.column width="70%"}
+```{r}
+#| label: asylum-seekers-coa
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot(Plot7) +
+  geom_col(aes(
+    x = Asylum_Seekers,
+    y = reorder(asylumCountry, Asylum_Seekers)),
+    fill = unhcr_pal(n = 1, "pal_blue"),
+    width = 0.8) +
+  geom_text(aes(
+    x = Asylum_Seekers,
+    y = reorder(asylumCountry, Asylum_Seekers),
+    label = scales::comma(round(Asylum_Seekers, -2)),
+    hjust = -0.1), size = 7) +
+  labs(title = paste0("Refugees and people in refugee-like situations in ",  plot_title_region, " | mid_", MyYear),
+       caption = "Note: China includes Hong Kong, Macau and Tibet\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  theme_unhcr(grid = FALSE,
+              axis = "y",
+              axis_title = FALSE,
+              axis_text = "y")+
+  guides(fill="none") + theme(text = element_text(size = 20))
+```
+:::
+
+::: {.column style="width: 30%; font-size: 35%;"}
+<br><br><br><br>Given capacity constraints and limited protection value for refugee recognition, Pakistan does not conduct RSD for all asylum seekers, other than for those where there may be a protection dividend such as resettlement.<br><br>In Malaysia, the strategic use of Refugee Status Determination (RSD) is utilized. As a result, some asylum seekers from populations with a high presumption of eligibility are provided with UNHCR card/documentation, but a decision may never be issued owing to a lack of any additional protection value in conducting mandate RSD. Those cases that are identified for resettlement needs would have to undergo a mandate RSD, however.
+:::
+:::
+
+# Internally Displaced Persons {.slide-blue}
+
+## Internally Displaced Persons
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: idp
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 7
+
+
+ggplot(Plot8) +
+  geom_line(aes(
+    x = year,
+    y = IDPs,
+    group=1),
+    linewidth = 1,
+    color = unhcr_pal(n = 1, "pal_blue")) +
+  geom_text(aes(
+    x = year,
+    y = IDPs,
+    label = round(IDPs / 1e6, digits = 1),
+    vjust = -1), size=9)+
+  labs(title = paste0("IDP trends in  ",  plot_title_region, " | ", MyYear - 4, " - mid_", MyYear),
+       y = "Number of people (millions)",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_y_continuous(limits= c(0, 5.5 * 1e6))+
+  theme_unhcr(grid = FALSE,
+              axis = "x",
+              axis_title = "y",
+              axis_text = "x") + theme(text = element_text(size = 25)) 
+```
+:::
+
+::: {.column style="width: 50%; font-size: 40%;"}
+```{r}
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 7
+
+ggplot(Plot9) +
+  geom_col(aes(x = IDPs, 
+               y = fct_rev(reorder(asylumCountry, -IDPs)), 
+               fill = as.character(Year)), 
+           position = position_dodge(0.7), width = 0.6)+
+  geom_text(aes(
+    x = IDPs,
+    y = fct_rev(reorder(asylumCountry, -IDPs)),
+    group = as.character(Year),
+    label = scales::comma(round(IDPs,-2))),
+    position = position_dodge(width = 0.7),
+    hjust = -0.03, size = 6.5) +
+  scale_fill_unhcr_d(palette = "pal_unhcr") +
+  labs(title = paste0("Countries with the most conflict-induced IDPs in\n", plot_title_region, " | ", MyYear-1," - mid_", MyYear),
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
+  scale_y_discrete(labels = scales::label_wrap(17)) +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 25))
+
+```
+
+The newly displaced IDPs during the first half of 2023 were in Myanmar (443,000) and the Philippines (80,000).
+:::
+:::
+
+# Statelessness {.slide-blue}
+
+## 
+
+![](\data-master\rbap_stateless_map.png){width="950" height="600" align="middle"}
+
+## 
+
+::: columns
+::: {.column width="50%"}
+<br><br>
+
+```{r}
+#| label: non-displaced-stateless
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 7
+
+ggplot(Plot10) +
+  geom_col(aes(
+    x = Stateless_Non_displaced,
+    y = reorder(asylumCountry, Stateless_Non_displaced)),
+    fill = unhcr_pal(n = 1, "pal_blue"),
+    width = 0.8) +
+  geom_text(aes(
+    x = Stateless_Non_displaced,
+    y = reorder(asylumCountry, Stateless_Non_displaced),
+    label = scales::comma(round(Stateless_Non_displaced, -2)),
+    hjust = -0.05), size=8.5) +
+  labs(title = paste0("Top Countries with Non-Displaced Stateless Persons in\n", plot_title_region, " | mid_", MyYear),
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  theme_unhcr(grid = FALSE,
+              axis = "y",
+              axis_title = FALSE,
+              axis_text = "y")+
+  guides(fill="none") + theme(text = element_text(size = 25)) + theme(plot.subtitle=element_text(size=18))
+```
+:::
+
+::: {.column width="50%"}
+<br><br>
+
+```{r}
+#| label: displaced-stateless
+#| fig-align: right
+#| fig-width: 8
+#| fig-height: 7
+
+ggplot(Plot11) +
+  geom_col(aes(
+    x = Stateless_Displaced,
+    y = reorder(asylumCountry, Stateless_Displaced)),
+    fill = unhcr_pal(n = 1, "pal_blue"),
+    width = 0.8) +
+  geom_text(aes(
+    x = Stateless_Displaced,
+    y = reorder(asylumCountry, Stateless_Displaced),
+    label = scales::comma(round(Stateless_Displaced, -2)),
+    hjust = -0.05), size=8.5) +
+  labs(title = paste0("Top Countries with Displaced Stateless Persons in\n", plot_title_region, " | mid_", MyYear),
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  theme_unhcr(grid = FALSE,
+              axis = "y",
+              axis_title = FALSE,
+              axis_text = "y")+
+  guides(fill="none") + theme(text = element_text(size = 25)) + theme(plot.subtitle=element_text(size=18))
+```
+:::
+:::
+
+# Solutions {.slide-blue}
+
+## Solutions
+
+::: columns
+::: {.column style="width: 50%; font-size: 40%;"}
+```{r}
+#| label: solutions
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 7
+
+ggplot(Plot12) +
+  geom_line(aes(
+    x = year,
+    y = `Returnees (Refugee)`,
+    group=1),
+    size = 1,
+    color = unhcr_pal(n = 1, "pal_blue")) +
+  geom_text(aes(
+    x = year,
+    y = `Returnees (Refugee)`,
+    label = scales::comma(round(`Returnees (Refugee)`, -2)),
+    vjust = -1), size = 9)+
+  labs(title = paste0("Refugee Returnees Trends in  ",  plot_title_region, " | ",MyYear - 4, " - mid_", MyYear),
+       y = "Number of people",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  theme_unhcr(grid = FALSE,
+              axis = "x",
+              axis_title = "y",
+              axis_text = "x") + theme(text = element_text(size = 20))
+
+```
+
+During the first half of 2023, some 6,300 refugees returned to their country of origin in the region, including some 6,100 Afghans and some 240 Sri Lankans.
+:::
+
+::: {.column style="width: 50%; font-size: 40%;"}
+```{r}
+#| fig-align: right
+#| fig-width: 8
+#| fig-height: 7
+ggplot(Plot13) +
+  geom_line(aes(
+    x = year,
+    y = `Returnees (IDP)`,
+    group=1),
+    size = 1,
+    color = unhcr_pal(n = 1, "pal_blue")) +
+  geom_text(aes(
+    x = year,
+    y = `Returnees (IDP)`,
+    label = scales::comma(round(`Returnees (IDP)`, -2)),
+    vjust = -1), size = 9)+
+  labs(title = paste0("IDP Returnees Trends in  ",   plot_title_region, " | ",MyYear - 4, " - mid_", MyYear),
+       y = "Number of people",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  theme_unhcr(grid = FALSE,
+              axis = "x",
+              axis_title = "y",
+              axis_text = "x") + theme(text = element_text(size = 20)) 
+```
+
+During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,400) and the Philippines (82,900).
+:::
+:::
+
+# Afghanistan Situation {.slide-blue}
+
+## 
+
+![](\data-master\afghans_global_mid2023.png){width="1000" height="650" align="middle"}
+
+## 
+
+::: columns
+::: {.column width="33%"}
+<p style="text-align: center;">
+
+<u><font size=6px>[**Global**]{.text-blue}</font></u>
+
+</p>
+
+<p style="text-align: center;">
+
+<font size=6px>[**9.7 million**]{.text-blue}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Forcibly displaced Afghans globally</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**6.1 million**]{.text-blue}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan refugees and people in refugee-like situations globally</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**325k**]{.text-blue}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan asylum-seekers around the world</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**3.25 million**]{.text-blue}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan IDPs</font>
+
+</p>
+:::
+
+::: {.column width="34%"}
+<p style="text-align: center;">
+
+<font size=6px><u>[**Asia-Pacific Region**]{.text-blue}</font></u>
+
+</p>
+
+<p style="text-align: center;">
+
+<font size=6px>[**8.9 million**]{.text-blue} [**(92%)**]{.text-grey}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Forcibly displaced Afghans are in Asia-Pacific</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**5.56 million**]{.text-blue} [**(91%)**]{.text-grey}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan refugees and people in refugee-like situations in Asia-Pacific</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**59k**]{.text-blue} [**(18%)**]{.text-grey}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan asylum-seekers in Asia-Pacific</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**3.25 million**]{.text-blue}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan IDPs</font>
+
+</p>
+:::
+
+::: {.column width="33%"}
+<p style="text-align: center;">
+
+<u><font size=6px>[**South-West Asia**]{.text-blue}</font></u>
+
+</p>
+
+<p style="text-align: center;">
+
+<font size=6px>[**8.8 million**]{.text-blue} [**(91%)**]{.text-grey}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Forcibly displaced Afghans are in South-West Asia</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**5.51 million**]{.text-blue} [**(90%)**]{.text-grey}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan refugees and people in refugee-like situations in South-West Asia</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**49k**]{.text-blue} [**(15%)**]{.text-grey}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan asylum-seekers in South-West Asia</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+<font size=6px>[**3.25 million**]{.text-blue}</font>
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Afghan IDPs</font>
+
+</p>
+:::
+:::
+
+# Myanmar Situation {.slide-blue}
+
+## 
+
+::: columns
+::: {.column width="50%"}
+<p style="text-align: center;">
+
+<u>[**Global**]{.text-blue}</u>
+
+</p>
+
+<p style="text-align: center;">
+
+[**3.16 million**]{.text-blue}
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Forcibly displaced people from Myanmar globally</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+[**1.27 million**]{.text-blue}
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Refugees from Myanmar globally</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+[**50k**]{.text-blue}
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Asylum-seekers from Myanmar around the world</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+[**1.85 million**]{.text-blue}
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>IDPs in Myanmar</font>
+
+</p>
+:::
+
+::: {.column width="50%"}
+<p style="text-align: center;">
+
+<u>[**Asia-Pacific Region**]{.text-blue}</u>
+
+</p>
+
+<p style="text-align: center;">
+
+[**3.15 million**]{.text-blue} [**(99.7%)**]{.text-grey}
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Forcibly displaced people from Myanmar in Asia-Pacific</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+[**1.26 million**]{.text-blue} [**(99.7%)**]{.text-grey}
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Refugees from Myanmar in Asia-Pacific</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+[**44k**]{.text-blue} [**(88%)**]{.text-grey}
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>Asylum-seekers from Myanmar in Asia-Pacific</font>
+
+</p>
+
+<br>
+
+<p style="text-align: center;">
+
+[**1.85 million**]{.text-blue}
+
+</p>
+
+<p style="text-align: center;line-height: 0.1">
+
+<font size=2px>IDPs in Myanmar</font>
+
+</p>
+:::
+:::
+
+## Myanmar Situation Population
+
+::: columns
+::: {.column width="80%"}
+```{r}
+#| label: myanmar-sit
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot(Plot14) +
+  geom_col(aes(x = pop_figure,
+               y = stack,
+               fill = pop_type), width = 0.7, position = "stack") +
+  geom_text(aes(x = pop_figure,
+                y =stack,
+                label = round(pop_figure / 1e6, 2)),
+            position = position_stack(vjust = 0.8), size=7) +
+  labs(title = paste0("Myanmar Situation | mid_", MyYear),
+       subtitle = "Number of people (millions)",
+       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(expand = expansion(c(0, 0.1))) +
+  scale_fill_manual(values = c('Refugees and refugee-like' = "#0072BC", 'Asylum-Seekers' = "#0072BC", IDPs = "#0072BC", 'Non-Displaced Stateless' = "#0072BC", 'Returnees (IDP)' = "#0072BC", 'Displaced Stateless' = "#CCCCCC"), breaks = 'Displaced Stateless') +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+```
+:::
+
+::: {.column style="width: 20%; font-size: 40%;"}
+<br><br><br><br>
+
+[**3.7 million**]{.text-blue}<br> People with and for whom UNHCR works from Myanmar in Asia and the Pacific region
+:::
+:::
+
+## 
+
+![](\data-master\rbap_rohingya_map_mid2023.png){width="1000" height="700" align="middle"}
+
+## Rohingya in Asia-Pacific
+
+::: columns
+::: {.column width="85%"}
+```{r}
+#| label: rohingya
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot(Plot15) +
+  geom_col(aes(x = Stateless_Total, 
+               y = fct_rev(reorder(asylumCountry, -Stateless_Total)), 
+               fill = as.character(Year)), 
+           position = position_dodge(0.7), width = 0.6)+
+  geom_text(aes(
+    x = Stateless_Total,
+    y = fct_rev(reorder(asylumCountry, -Stateless_Total)),
+    group = as.character(Year),
+    label = scales::comma(round(Stateless_Total,-2))),
+    position = position_dodge(width = 0.7),
+    hjust = -0.05, size = 6.5) +
+  scale_fill_unhcr_d(palette = "pal_unhcr") +
+  labs(title = paste0("Countries with Rohingya in ", plot_title_region," | ", MyYear-1," - mid_", MyYear),
+       caption = "Note: Both displaced and non-displaced Rohingya included for Myanmar\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+  scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
+  scale_y_discrete(labels = scales::label_wrap(17)) +
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size=18))
+
+
+```
+:::
+
+::: {.column style="width: 15%; font-size: 50%;"}
+<br><br>
+
+<br><br>[**1.7 million**]{.text-blue} <br>Rohingya<br> <br>[**62%**]{.text-blue} <br>are Refugees<br> <br>[**9%**]{.text-blue} <br>are IDPs<br> <br>[**28%**]{.text-blue} <br>are non-displaced Rohingya
+:::
+:::
+
+# Thank you {.slide-blue}
