@@ -23,21 +23,17 @@ Region_prep(MyRegion,MyYear,"Mid")
 Region_prep(MyRegion,MyYear-1,"End")
 
 
-
-
-## column deduct is for the displaced stateless people, who have been double counted and should be deduplicated from the total PoC
-
 ### PoC and FDP for all regions
 
-region_poc_mid_2023 <- POC(mysr2023,region_d,2023)
+region_poc_mid_2023 <- POC(MYSR(MyYear),region_d,MyYear)
 
 ### PoC and FDP for all COA
 
-COA <- POC(mysr2023, asylumCountry, 2023)
+COA <- POC(MYSR(MyYear), asylumCountry, MyYear)
 
 ### PoC and FDP for all COO
 
-COO <- POC(mysr2023, originCountry, 2023)
+COO <- POC(MYSR(MyYear), originCountry, MyYear)
 
 ### refugee population ranking
 
@@ -50,21 +46,3 @@ ranking_COO <- COO %>% mutate(Refugee_Mandate = Refugees + OIP) %>%
   select(Year,originCountry, Refugee_Mandate, Refugees, OIP) %>% 
   arrange(desc(Refugee_Mandate))
 
-### Get the clean data for your region or globally
-
-Region_prep("Asia",2023,"Mid")
-Region_prep("Asia",2022,"End")
-load("data-raw/Asia_2023_clean_data.Rdata")
-load("data-master/Asia_2022_clean_data.Rdata")
-
-Global_prep(2023,"Mid")
-load("data-master/global_2023_clean_data.Rdata")
-
-Refugee_prep(2023,"Mid")
-load("data-master/Refugee_2023_clean_data.Rdata")
-
-agg_asylum <- POC(Asia_2023_clean_data, asylumCountry, 2023)
-agg_origin <- POC(Asia_2023_clean_data, originCountry, 2023)
-
-agg_asylum <- POC(Europe_2022_clean_data, asylumCountry, 2022)
-sum(agg_asylum$POC_Total)
