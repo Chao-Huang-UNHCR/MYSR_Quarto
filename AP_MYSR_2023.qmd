@@ -283,7 +283,7 @@ ggplot(Plot5) +
                 y = reorder(asylumCountry, ref_figure),
                 group = pop_type,
                 label = round(ref_figure / 1e6, 2)),
-            position = position_stack(vjust = 0.75), size = 6) +
+            position = position_stack(vjust = 0.5), size = 5.5) +
   labs(title = paste0("Refugees and people in refugee-like situations hosted in ",  plot_title_region, " | mid_", MyYear),
        subtitle = "Number of people (millions)",
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
@@ -921,7 +921,7 @@ ggplot(Plot14) +
   geom_text(aes(x = pop_figure,
                 y =stack,
                 label = round(pop_figure / 1e6, 2)),
-            position = position_stack(vjust = 0.8), size=7) +
+            position = position_stack(vjust = 0.7), size=6) +
   labs(title = paste0("Myanmar Situation | mid_", MyYear),
        subtitle = "Number of people (millions)",
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
@@ -988,4 +988,4 @@ roh_total <- round(sum(Plot15$Stateless_Total[Plot15$Year == "mid_2023"])/1e6,1)
 :::
 :::
 
-# Thank you {.slide-blue}
+# Thank you ! {.slide-blue}
