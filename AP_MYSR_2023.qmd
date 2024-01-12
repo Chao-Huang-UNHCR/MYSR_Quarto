@@ -138,11 +138,25 @@ ggplot(Plot2) +
   theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") +
   theme(text = element_text(size = 18)) 
 
+# Plot2
+fd_change <- round((sum(Plot2$pop_figure[Plot2$Year == 'mid_2023' & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers', 'IDPs')])  -  sum(Plot2$pop_figure[Plot2$Year == 2022 & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers', 'IDPs')]))*100 / sum(Plot2$pop_figure[Plot2$Year == 2022 & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers', 'IDPs')]),1)
+
+ref_asy_change <- round((sum(Plot2$pop_figure[Plot2$Year == 'mid_2023' & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers')])  -  sum(Plot2$pop_figure[Plot2$Year == 2022 & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers')]))*100 / sum(Plot2$pop_figure[Plot2$Year == 2022 & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers')]),0)
+
+ref_asy_previous <- round((sum(Plot2$pop_figure[Plot2$Year == '2022' & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers')]))/1e6,1)
+
+ref_asy_new <- round((sum(Plot2$pop_figure[Plot2$Year == 'mid_2023' & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers')]))/1e6,1)
+
+idp_change <- round((sum(Plot2$pop_figure[Plot2$Year == 'mid_2023' & Plot2$pop_type == 'IDPs'])  -  sum(Plot2$pop_figure[Plot2$Year == 2022 & Plot2$pop_type == 'IDPs']))*100 / sum(Plot2$pop_figure[Plot2$Year == 2022 & Plot2$pop_type == 'IDPs']),0)
+
+idp_previous <- round((sum(Plot2$pop_figure[Plot2$Year == '2022' & Plot2$pop_type == 'IDPs']))/1e6,1)
+
+idp_new <- round((sum(Plot2$pop_figure[Plot2$Year == 'mid_2023' & Plot2$pop_type == 'IDPs']))/1e6,1)
 ```
 :::
 
 ::: {.column style="width: 20%; font-size: 40%;"}
-<br><br><br> - **6% increase** in the total number of forcibly displaced people compared to end-2022 <br> <br> - Refugees (including people in refugee-like situation) and asylum-seekers increased by 5% from 7M to 7.4M <br> <br> - IDPs increased to 5.3M, a **7% increase** from 5M at end-2022
+<br><br><br> - **`r fd_change`% increase** in the total number of forcibly displaced people compared to end-2022 <br> <br> - Refugees (including people in refugee-like situation) and asylum-seekers increased by `r ref_asy_change`% from `r ref_asy_previous`M to `r ref_asy_new`M <br> <br> - IDPs increased to `r idp_new`M, a **`r idp_change`% increase** from `r idp_previous`M at end-2022
 :::
 :::
 
@@ -177,18 +191,32 @@ ggplot(Plot3) +
                      order = c(2, 1)) +
   theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
 
+#Plot3
+
+afg_ref_data <- MYSR(MyYear) %>% mutate(asylum = replace(asylum, asylum %in% c("CHI", "HKG", "MAC"),"CHI")) %>% filter(origin == 'AFG' & Refugees > 0)
+
+afg_hosting_count <- as.numeric(length(unique(afg_ref_data$asylum)))
+
+totalAFG_ref <- round((sum(Plot3$ref_figure[Plot3$originCountry == 'Afghanistan']))/1e6,1)
+
+totalMYA_ref <- round((sum(Plot3$ref_figure[Plot3$originCountry == 'Myanmar']))/1e6,2)
+
+mya_ref <- MYSR(MyYear) %>% filter(origin == 'MYA' & Refugees > 0)
+mya_ref_asia <- MYSR(MyYear) %>% filter(origin == 'MYA' & Refugees > 0 & region_d == 'Asia')
+mya_ref_asia_percent <- round((sum(mya_ref_asia$Refugees)/sum(mya_ref$Refugees))*100,1)
+
 ```
 :::
 
 ::: {.column style="width: 20%; font-size: 38%;"}
-<br>-The Afghan refugee population (including those in refugee-like situations) continues to be the largest in the region with 5.6 million hosted in the region. <br><br>-Afghanistan overtook Ukraine to become the second largest country of origin of refugees (including refugee-like) globally, with 6.1 million hosted by 106 countries globally. <br><br>-Myanmar is the second largest country of origin of refugees (including refugee-like) in `r plot_title_region` and the sixth largest globally. There are 1.27 million refugees and people in refugee-like situations from Myanmar. The vast majority (99.7%) are hosted within the region, with over three-quarters hosted in Bangladesh.
+<br><br>-Afghanistan overtook Ukraine to become the second largest country of origin of refugees (including refugee-like) globally, with `r totalAFG_ref` million hosted by `r afg_hosting_count` countries and territories globally. <br><br>-Myanmar is the second largest country of origin of refugees (including refugee-like) in and the sixth largest globally. There are `r totalMYA_ref` million refugees and people in refugee-like situations from Myanmar. The vast majority (`r mya_ref_asia_percent`%) are hosted within the region, with over three-quarters hosted in Bangladesh.
 :::
 :::
 
 ## SDG 10.7.4
 
 ::: columns
-::: {.column width="80%"}
+::: {.column width="75%"}
 ```{r}
 #| label: refugees-coo-sdg
 #| fig-align: left
@@ -204,14 +232,37 @@ ggplot(Plot4) +
   geom_text(aes(x = country, 
                 y = sdg, 
                 label = scales::comma(sdg), 
-                hjust = -0.1))+
+                hjust = -0.1), size = 7)+
   scale_y_continuous(expand = expansion(c(0,0.1)))+
   theme_unhcr(grid = FALSE,
               axis = "y",
               axis_title = FALSE,
-              axis_text = "y")
+              axis_text = "y") + theme(text = element_text(size=20))
+
+sdg1_ctry <- Plot4$country[1]
+sdg1_value <- format(as.numeric(Plot4$sdg[1]), big.mark = ",")
+
+sdg2_ctry <- Plot4$country[2]
+sdg2_value <- format(as.numeric(Plot4$sdg[2]), big.mark = ",")
+
+sdg3_ctry <- Plot4$country[3]
+sdg3_value <- format(as.numeric(Plot4$sdg[3]), big.mark = ",")
+
+sdg4_ctry <- Plot4$country[4]
+sdg4_value <- format(as.numeric(Plot4$sdg[4]), big.mark = ",")
+
+sdg5_ctry <- Plot4$country[5]
+sdg5_value <- format(as.numeric(Plot4$sdg[5]), big.mark = ",")
 
 ```
+:::
+
+::: {.column style="width: 25%; font-size: 38%;"}
+<br>-SDG indicator 10.7.4 is a useful way to identify the countries of origin with the most refugees relative to their number of inhabitants.
+<br><br>-The countries that have seen the greatest proportion of their national population becoming refugees are `r sdg1_ctry` (`r sdg1_value` per 100,000 inhabitants), `r sdg2_ctry` (`r sdg2_value` per 100,000), `r sdg3_ctry` (`r sdg3_value` per 100,000), `r sdg4_ctry` (`r sdg4_value` per 100,000) and `r sdg5_ctry` (`r sdg5_value` per 100,000). 
+:::
+:::
+
 
 ## Refugees in `r plot_title_region` 
 
@@ -241,11 +292,16 @@ ggplot(Plot5) +
                      nmax = 10,
                      order = c(2, 1)) +
   theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+
+#Plot5
+totalIRN_host <- round((sum(Plot5$ref_figure[Plot5$asylumCountry == 'Iran (Islamic Rep. of)']))/1e6,1)
+totalPAK_host <- round((sum(Plot5$ref_figure[Plot5$asylumCountry == 'Pakistan']))/1e6,1)
+totalBGD_host <- format(round((sum(Plot5$ref_figure[Plot5$asylumCountry == 'Bangladesh'])),-2), big.mark = ",")
 ```
 :::
 
 ::: {.column style="width: 20%; font-size: 40%;"}
-<br>-The Islamic Republic of Iran and Türkiye each hosted 3.4 million refugees (including refugee-like), the largest populations worldwide. The vast majority of refugees and people in refugee-like situations in the Islamic Republic of Iran are Afghans.<br><br>-Pakistan is the fifth-largest refugee hosting country globally, with 2.1M refugees and people in refugee-like situations (almost all of whom are Afghans). <br><br>-Bangladesh is the tenth-largest refugee hosting country, with 961,800 refugees (mainly Rohingya).
+<br>-The Islamic Republic of Iran and Türkiye each hosted `r totalIRN_host` million refugees (including refugee-like), the largest populations worldwide. The vast majority of refugees and people in refugee-like situations in the Islamic Republic of Iran are Afghans.<br><br>-Pakistan is the fifth-largest refugee hosting country globally, with `r totalPAK_host` million refugees and people in refugee-like situations (almost all of whom are Afghans). <br><br>-Bangladesh is the tenth-largest refugee hosting country, with 961,800 refugees (mainly Rohingya).
 :::
 :::
 
@@ -282,11 +338,26 @@ ggplot(Plot6) +
               axis_text = "y")+
   guides(fill="none") + theme(text = element_text(size = 20))
 
+#Plot6
+asy_fromAP_ctry1 <- Plot6$originCountry[1]
+asy_fromAP1_value <- format(round(as.numeric(Plot6$Asylum_Seekers[1]),-2), big.mark = ",")
+
+asy_fromAP_ctry2 <- Plot6$originCountry[2]
+asy_fromAP2_value <- format(round(as.numeric(Plot6$Asylum_Seekers[2]),-2), big.mark = ",")
+
+asy_fromAP_ctry3 <- Plot6$originCountry[3]
+asy_fromAP3_value <- format(round(as.numeric(Plot6$Asylum_Seekers[3]),-2), big.mark = ",")
+
+asy_fromAP_ctry4 <- Plot6$originCountry[4]
+asy_fromAP4_value <- format(round(as.numeric(Plot6$Asylum_Seekers[4]),-2), big.mark = ",")
+
+asy_fromAP_ctry5 <- Plot6$originCountry[5]
+asy_fromAP5_value <- format(round(as.numeric(Plot6$Asylum_Seekers[5]),-2), big.mark = ",")
 ```
 :::
 
 ::: {.column style="width: 30%; font-size: 40%;"}
-<br><br><br><br>Afghanistan (324,500) is by far the largest country of origin for asylum seekers from the Asia-Pacific region, followed by China (121,000), India (118,100), Iran (77,800) and Bangladesh (65,600).
+<br><br><br><br>`r asy_fromAP_ctry1` (`r asy_fromAP1_value`) is by far the largest country of origin for asylum seekers from the Asia-Pacific region, followed by `r asy_fromAP_ctry2` (`r asy_fromAP2_value`), `r asy_fromAP_ctry3` (`r asy_fromAP3_value`), `r asy_fromAP_ctry4` (`r asy_fromAP4_value`) and `r asy_fromAP_ctry5` (`r asy_fromAP5_value`).
 :::
 :::
 
@@ -498,9 +569,11 @@ ggplot(Plot12) +
               axis_title = "y",
               axis_text = "x") + theme(text = element_text(size = 20))
 
+#Plot12
+total_ref_return <- format(round((sum(Plot12$'Returnees (Refugee)'[Plot12$year == 'mid_2023'])),-2), big.mark = ",")
 ```
 
-During the first half of 2023, some 6,300 refugees returned to their country of origin in the region, including some 6,100 Afghans and some 240 Sri Lankans.
+During the first half of 2023, some `r total_ref_return` refugees returned to their country of origin in the region, including some 6,100 Afghans and some 240 Sri Lankans.
 :::
 
 ::: {.column style="width: 50%; font-size: 40%;"}
@@ -527,9 +600,12 @@ ggplot(Plot13) +
               axis = "x",
               axis_title = "y",
               axis_text = "x") + theme(text = element_text(size = 20)) 
+
+#Plot13
+total_idp_return <- format(round((sum(Plot13$'Returnees (IDP)'[Plot13$year == 'mid_2023'])),-2), big.mark = ",")
 ```
 
-During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,400) and the Philippines (82,900).
+During the first half of 2023, some `r total_idp_return` IDPs returned mainly in Myanmar (89,400) and the Philippines (82,900).
 :::
 :::
 
@@ -543,25 +619,21 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 ::: columns
 ::: {.column width="33%"}
-<p style="text-align: center;">
+<p style="text-align: left">
 
-<u><font size=6px>[**Global**]{.text-blue}</font></u>
+<u><font size=6px>[**Global**]{.text-blue}</font></u></p>
 
-</p>
-
-<p style="text-align: center;">
+<p style="text-align: center; line-height: 0.001;">
 
 <font size=6px>[**9.7 million**]{.text-blue}</font>
 
 </p>
 
-<p style="text-align: center;line-height: 0.1">
+<p style="text-align: center;line-height: 0.001;">
 
-<font size=2px>Forcibly displaced Afghans globally</font>
+<font size=2px">Forcibly displaced Afghans globally</font>
 
 </p>
-
-<br>
 
 <p style="text-align: center;">
 
@@ -571,11 +643,9 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 <p style="text-align: center;line-height: 0.1">
 
-<font size=2px>Afghan refugees and people in refugee-like situations globally</font>
+<font size=2px>Afghan refugees and refugee-like globally</font>
 
 </p>
-
-<br>
 
 <p style="text-align: center;">
 
@@ -588,8 +658,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 <font size=2px>Afghan asylum-seekers around the world</font>
 
 </p>
-
-<br>
 
 <p style="text-align: center;">
 
@@ -623,8 +691,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 </p>
 
-<br>
-
 <p style="text-align: center;">
 
 <font size=6px>[**5.56 million**]{.text-blue} [**(91%)**]{.text-grey}</font>
@@ -633,11 +699,10 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 <p style="text-align: center;line-height: 0.1">
 
-<font size=2px>Afghan refugees and people in refugee-like situations in Asia-Pacific</font>
+<font size=2px>Afghan refugees and refugee-like in Asia-Pacific</font>
 
 </p>
 
-<br>
 
 <p style="text-align: center;">
 
@@ -650,8 +715,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 <font size=2px>Afghan asylum-seekers in Asia-Pacific</font>
 
 </p>
-
-<br>
 
 <p style="text-align: center;">
 
@@ -685,8 +748,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 </p>
 
-<br>
-
 <p style="text-align: center;">
 
 <font size=6px>[**5.51 million**]{.text-blue} [**(90%)**]{.text-grey}</font>
@@ -695,11 +756,9 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 <p style="text-align: center;line-height: 0.1">
 
-<font size=2px>Afghan refugees and people in refugee-like situations in South-West Asia</font>
+<font size=2px>Afghan refugees and refugee-like in South-West Asia</font>
 
 </p>
-
-<br>
 
 <p style="text-align: center;">
 
@@ -712,8 +771,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 <font size=2px>Afghan asylum-seekers in South-West Asia</font>
 
 </p>
-
-<br>
 
 <p style="text-align: center;">
 
@@ -753,8 +810,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 </p>
 
-<br>
-
 <p style="text-align: center;">
 
 [**1.27 million**]{.text-blue}
@@ -767,8 +822,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 </p>
 
-<br>
-
 <p style="text-align: center;">
 
 [**50k**]{.text-blue}
@@ -780,8 +833,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 <font size=2px>Asylum-seekers from Myanmar around the world</font>
 
 </p>
-
-<br>
 
 <p style="text-align: center;">
 
@@ -815,8 +866,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 </p>
 
-<br>
-
 <p style="text-align: center;">
 
 [**1.26 million**]{.text-blue} [**(99.7%)**]{.text-grey}
@@ -829,8 +878,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 
 </p>
 
-<br>
-
 <p style="text-align: center;">
 
 [**44k**]{.text-blue} [**(88%)**]{.text-grey}
@@ -842,8 +889,6 @@ During the first half of 2023, some 175,000 IDPs returned mainly in Myanmar (89,
 <font size=2px>Asylum-seekers from Myanmar in Asia-Pacific</font>
 
 </p>
-
-<br>
 
 <p style="text-align: center;">
 
@@ -883,13 +928,17 @@ ggplot(Plot14) +
   scale_x_continuous(expand = expansion(c(0, 0.1))) +
   scale_fill_manual(values = c('Refugees and refugee-like' = "#0072BC", 'Asylum-Seekers' = "#0072BC", IDPs = "#0072BC", 'Non-Displaced Stateless' = "#0072BC", 'Returnees (IDP)' = "#0072BC", 'Displaced Stateless' = "#CCCCCC"), breaks = 'Displaced Stateless') +
   theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+
+#Plot14
+
+MYA_poc <- round((sum(Plot14$pop_figure) - Plot14$pop_figure[Plot14$pop_type == "Displaced Stateless"])/1e6,1)
 ```
 :::
 
 ::: {.column style="width: 20%; font-size: 40%;"}
 <br><br><br><br>
 
-[**3.7 million**]{.text-blue}<br> People with and for whom UNHCR works from Myanmar in Asia and the Pacific region
+[**`r MYA_poc` million**]{.text-blue}<br> People with and for whom UNHCR works from Myanmar in Asia and the Pacific region
 :::
 :::
 
@@ -926,14 +975,16 @@ ggplot(Plot15) +
   scale_y_discrete(labels = scales::label_wrap(17)) +
   theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size=18))
 
+#Plot15
 
+roh_total <- round(sum(Plot15$Stateless_Total[Plot15$Year == "mid_2023"])/1e6,1)
 ```
 :::
 
 ::: {.column style="width: 15%; font-size: 50%;"}
 <br><br>
 
-<br><br>[**1.7 million**]{.text-blue} <br>Rohingya<br> <br>[**62%**]{.text-blue} <br>are Refugees<br> <br>[**9%**]{.text-blue} <br>are IDPs<br> <br>[**28%**]{.text-blue} <br>are non-displaced Rohingya
+<br><br>[**`r roh_total` million**]{.text-blue} <br>Rohingya<br> <br>[**62%**]{.text-blue} <br>are Refugees<br> <br>[**9%**]{.text-blue} <br>are IDPs<br> <br>[**28%**]{.text-blue} <br>are non-displaced Rohingya
 :::
 :::
 
