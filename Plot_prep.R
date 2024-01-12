@@ -1,3 +1,12 @@
+#### the scripts here will generate all the datasets ready for plotting and save all the files into the folder data-master/plotdata. The datasets were named as Plot1 to Plot15 with short descriptions. While loading all the plotdata into the environment, you can use 'Plot1' ... 'Plot15' to refer to those datasets.
+
+#### The key variables (MyRegion, MyYear, plot_title_region) can be changed for different purpose, and the datasets, plots and narratives will be refreshed automatically.
+
+#### some specials for Asia-Pacific region when aggregating the data for COO or COA: HKG and MAC special districts for China. If you region have similar cases, please change the codes accordingly in Plot 3, 4, 5, 6, 7.
+
+#### the plot for specific situations will not apply for other regions
+
+
 library(refugees)
 library(ggplot2)
 library(unhcrthemes)
