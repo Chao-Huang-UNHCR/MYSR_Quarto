@@ -78,37 +78,15 @@ sums <- poc_2014_my2023_myregion_long %>%
 
 # (4) save the data into data-master/Plotdata for plotting
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot1.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot1_10year_trend.Rdata"))
 assign("Plot1",poc_2014_my2023_myregion_long)
 save(Plot1, file = file_path)
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot1_label.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot1_label_10year_trend.Rdata"))
 assign("Plot1_label",sums)
 save(Plot1_label, file = file_path)
 
-# Plot1
 
-gg <- ggplot(Plot1) +
-  geom_col(aes(x = year,
-               y = pop_mil,
-               fill = pop_type),
-           width = 0.7)  +
-  scale_fill_unhcr_d(palette = "pal_unhcr_poc",
-                     nmax = 9,
-                     order = c(8,6,9,5,4,1))+
-  scale_y_continuous(breaks = pretty_breaks(n = 6), 
-                     limits = c(0,14.5),
-                     expand = expansion(c(0, 0.2)))+
-  labs(title = paste0("People UNHCR protects and/or assists in the ",plot_title_region, " Region | ", MyYear - 9," - mid_", MyYear),
-       y = "Number of people (million)")+
-  theme_unhcr(grid = FALSE,
-              axis_title = "y")
-
-gg + geom_text(size = 9,
-               data = Plot1_label, 
-               aes(x = year, y = total_poc, label = round(total_poc, 1)), 
-               vjust = -0.5) + 
-  theme(text = element_text(size = 18))  
 
 ###### Plot 2 --- regional population compared to last year, by populaiton type ####
 
@@ -139,29 +117,9 @@ dat_twoyears <- rbind(dat_lastyear, dat_year)
 dat_twoyears_long <- dat_twoyears %>% 
   gather(key = "pop_type", value = "pop_figure", 2:8)
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot2.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot2_regional_pop_type.Rdata"))
 assign("Plot2",dat_twoyears_long)
 save(Plot2, file = file_path)
-
-ggplot(Plot2) +
-  geom_col(aes(x = pop_figure, 
-               y = fct_rev(reorder(pop_type, -pop_figure)), 
-               fill = as.character(Year)), 
-           position = position_dodge(0.7), width = 0.6)+
-  geom_text(aes(
-    x = pop_figure,
-    y = fct_rev(reorder(pop_type, -pop_figure)),
-    group = as.character(Year),
-    label = scales::comma(round(pop_figure,-2))),
-    position = position_dodge(width = 0.7),
-    hjust = -0.05, size = 6.5) +
-  scale_fill_unhcr_d(palette = "pal_unhcr") +
-  labs(title = paste0("Population Categories in ", plot_title_region, " | ", MyYear-1, " - mid_", MyYear),
-       caption = "Note: Stateless persons have been included in both stateless and their respective displacement categories\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
-  scale_y_discrete(labels = scales::label_wrap(17)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") +
-  theme(text = element_text(size = 18)) 
 
 ##### Plot 3 --- Refugees by Top 5 COO ####
 
@@ -184,27 +142,9 @@ Plot3 <- ref_coo_asia %>%
 
 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot3.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot3_refugee_COO.Rdata"))
 save(Plot3, file = file_path)
 
-ggplot(Plot3) +
-  geom_col(aes(x = ref_figure,
-               y = reorder(originCountry, ref_figure),
-               fill = pop_type), width = 0.7) +
-  geom_text(data = filter(Plot3, ref_figure > 40000),
-            aes(x = ref_figure,
-                y = reorder(originCountry, ref_figure),
-                group = pop_type,
-                label = round(ref_figure / 1e6, 2)),
-            position = position_stack(vjust = 0.75), size = 6) +
-  labs(title = paste0("Refugees and people in refugee-like situations from ",  plot_title_region, " | mid_", MyYear),
-       subtitle = "Number of people (millions)",
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(expand = expansion(c(0, 0.1))) +
-  scale_fill_unhcr_d(palette = "pal_unhcr",
-                     nmax = 10,
-                     order = c(2, 1)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
 
 ##### Plot 4 --- Refugees and SDG 10.7.4
 
@@ -242,24 +182,9 @@ Plot4 <- ref_coo_oip_asia %>%
   select(iso_o, `Region, subregion, country or area *`, sdg) %>% 
   rename(country = `Region, subregion, country or area *`)
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot4.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot4_sdg.Rdata"))
 save(Plot4, file = file_path)
 
-ggplot(Plot4) + 
-  geom_col(aes(x = reorder(country, sdg), y = sdg),
-           fill = unhcr_pal(n=1, "pal_blue"))+
-  coord_flip()+
-  labs(title = paste0("Sustainable Development Goals indicator 10.7.4 | mid_", MyYear),
-       x = "Countries" , y = "SDG Indicator 10.7.4") +
-  geom_text(aes(x = country, 
-                y = sdg, 
-                label = scales::comma(sdg), 
-                hjust = -0.1))+
-  scale_y_continuous(expand = expansion(c(0,0.1)))+
-  theme_unhcr(grid = FALSE,
-              axis = "y",
-              axis_title = FALSE,
-              axis_text = "y")
 
 ##### Plot 5 --- Refugees by Top 5 COA
 
@@ -282,28 +207,8 @@ Plot5 <- ref_coa_asia %>%
 
 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot5.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot5_refugee_coa.Rdata"))
 save(Plot5, file = file_path)
-
-ggplot(Plot5) +
-  geom_col(aes(x = ref_figure,
-               y = reorder(asylumCountry, ref_figure),
-               fill = pop_type), width = 0.7) +
-  geom_text(data = filter(Plot5, ref_figure > 40000),
-            aes(x = ref_figure,
-                y = reorder(asylumCountry, ref_figure),
-                group = pop_type,
-                label = round(ref_figure / 1e6, 2)),
-            position = position_stack(vjust = 0.75), size = 6) +
-  labs(title = paste0("Refugees and people in refugee-like situations hosted in ",  plot_title_region, " | mid_", MyYear),
-       subtitle = "Number of people (millions)",
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(expand = expansion(c(0, 0.1))) +
-  scale_fill_unhcr_d(palette = "pal_unhcr",
-                     nmax = 10,
-                     order = c(2, 1)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
-
 
 ##### Plot 6 --- Asylum seekers by top 5 COO
 
@@ -316,28 +221,8 @@ Plot6 <- asy_coo_asia %>%
   arrange(desc(Asylum_Seekers)) %>%  
   slice_head(n = 5) 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot6.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot6_asy_coo.Rdata"))
 save(Plot6, file = file_path)
-
-ggplot(Plot6) +
-  geom_col(aes(
-    x = Asylum_Seekers,
-    y = reorder(originCountry, Asylum_Seekers)),
-    fill = unhcr_pal(n = 1, "pal_blue"),
-    width = 0.8) +
-  geom_text(aes(
-    x = Asylum_Seekers,
-    y = reorder(originCountry, Asylum_Seekers),
-    label = scales::comma(round(Asylum_Seekers, -2)),
-    hjust = -0.1), size = 7) +
-  labs(title = paste0("Refugees and people in refugee-like situations from ",  plot_title_region, " | mid_", MyYear),
-       caption = "Note: China includes Hong Kong, Macau and Tibet\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(expand = expansion(c(0, 0.1))) +
-  theme_unhcr(grid = FALSE,
-              axis = "y",
-              axis_title = FALSE,
-              axis_text = "y")+
-  guides(fill="none") + theme(text = element_text(size = 20))
 
 
 ##### Plot 7 --- Asylum seekers by top 5 COA
@@ -352,30 +237,8 @@ Plot7 <- asy_coa_asia %>%
   arrange(desc(Asylum_Seekers)) %>%  
   slice_head(n = 5) 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot7.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot7_asy_coa.Rdata"))
 save(Plot7, file = file_path)
-
-ggplot(Plot7) +
-  geom_col(aes(
-    x = Asylum_Seekers,
-    y = reorder(asylumCountry, Asylum_Seekers)),
-    fill = unhcr_pal(n = 1, "pal_blue"),
-    width = 0.8) +
-  geom_text(aes(
-    x = Asylum_Seekers,
-    y = reorder(asylumCountry, Asylum_Seekers),
-    label = scales::comma(round(Asylum_Seekers, -2)),
-    hjust = -0.1), size = 7) +
-  labs(title = paste0("Refugees and people in refugee-like situations in ",  plot_title_region, " | mid_", MyYear),
-       caption = "Note: China includes Hong Kong, Macau and Tibet\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(expand = expansion(c(0, 0.1))) +
-  theme_unhcr(grid = FALSE,
-              axis = "y",
-              axis_title = FALSE,
-              axis_text = "y")+
-  guides(fill="none") + theme(text = element_text(size = 20))
-
-
 
 ##### Plot 8 --- IDP trends in last 5 years
 
@@ -384,30 +247,10 @@ Plot8 <- poc_2014_my2023_myregion %>%
   filter(year %in% c("2019","2020","2021","2022","mid_2023"))
 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot8.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot8_idp_trends.Rdata"))
 save(Plot8, file = file_path)
 
 
-ggplot(Plot8) +
-  geom_line(aes(
-    x = year,
-    y = IDPs,
-    group=1),
-    linewidth = 1,
-    color = unhcr_pal(n = 1, "pal_blue")) +
-  geom_text(aes(
-    x = year,
-    y = IDPs,
-    label = round(IDPs / 1e6, digits = 1),
-    vjust = -1), size=9)+
-  labs(title = paste0("IDP trends in  ",  plot_title_region, " | ", MyYear - 4, " - mid_", MyYear),
-       y = "Number of people (millions)",
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_y_continuous(limits= c(0, 5.5 * 1e6))+
-  theme_unhcr(grid = FALSE,
-              axis = "x",
-              axis_title = "y",
-              axis_text = "x") + theme(text = element_text(size = 25)) 
 
 ######Plot 9 IDPs by top 5 Countries and compared to last year ####
 
@@ -421,27 +264,9 @@ IDPYear_last <- POC(get(regionDatYear_last),asylumCountry,MyYear) %>%
 
 Plot9 <- rbind(IDPYear, IDPYear_last)
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot9.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot9_idp_coo.Rdata"))
 save(Plot9, file = file_path)
 
-ggplot(Plot9) +
-  geom_col(aes(x = IDPs, 
-               y = fct_rev(reorder(asylumCountry, -IDPs)), 
-               fill = as.character(Year)), 
-           position = position_dodge(0.7), width = 0.6)+
-  geom_text(aes(
-    x = IDPs,
-    y = fct_rev(reorder(asylumCountry, -IDPs)),
-    group = as.character(Year),
-    label = scales::comma(round(IDPs,-2))),
-    position = position_dodge(width = 0.7),
-    hjust = -0.03, size = 6.5) +
-  scale_fill_unhcr_d(palette = "pal_unhcr") +
-  labs(title = paste0("Countries with the most conflict-induced IDPs in\n", plot_title_region, " | ", MyYear-1," - mid_", MyYear),
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
-  scale_y_discrete(labels = scales::label_wrap(17)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 25))
 
 
 ###### Plot 10 Non-Displaced stateless ####
@@ -450,29 +275,8 @@ Plot10 <- POC(get(regionDatYear),asylumCountry,MyYear) %>%
   arrange(desc(Stateless_Non_displaced)) %>% 
   slice_head( n = 5) 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot10.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot10_sta_non_displaced.Rdata"))
 save(Plot10, file = file_path)
-
-ggplot(Plot10) +
-  geom_col(aes(
-    x = Stateless_Non_displaced,
-    y = reorder(asylumCountry, Stateless_Non_displaced)),
-    fill = unhcr_pal(n = 1, "pal_blue"),
-    width = 0.8) +
-  geom_text(aes(
-    x = Stateless_Non_displaced,
-    y = reorder(asylumCountry, Stateless_Non_displaced),
-    label = scales::comma(round(Stateless_Non_displaced, -2)),
-    hjust = -0.05), size=8.5) +
-  labs(title = paste0("Top Countries with Non-Displaced Stateless Persons in\n", plot_title_region, " | mid_", MyYear),
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(expand = expansion(c(0, 0.1))) +
-  theme_unhcr(grid = FALSE,
-              axis = "y",
-              axis_title = FALSE,
-              axis_text = "y")+
-  guides(fill="none") + theme(text = element_text(size = 25)) + theme(plot.subtitle=element_text(size=18))
-
 
 
 ###### Plot 11 Displaced stateless ####
@@ -481,28 +285,8 @@ Plot11 <- POC(get(regionDatYear),asylumCountry,MyYear) %>%
   arrange(desc(Stateless_Displaced)) %>% 
   slice_head( n = 5) 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot11.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot11_sta_displaced.Rdata"))
 save(Plot11, file = file_path)
-
-ggplot(Plot11) +
-  geom_col(aes(
-    x = Stateless_Displaced,
-    y = reorder(asylumCountry, Stateless_Displaced)),
-    fill = unhcr_pal(n = 1, "pal_blue"),
-    width = 0.8) +
-  geom_text(aes(
-    x = Stateless_Displaced,
-    y = reorder(asylumCountry, Stateless_Displaced),
-    label = scales::comma(round(Stateless_Displaced, -2)),
-    hjust = -0.05), size=8.5) +
-  labs(title = paste0("Top Countries with Displaced Stateless Persons in\n", plot_title_region, " | mid_", MyYear),
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(expand = expansion(c(0, 0.1))) +
-  theme_unhcr(grid = FALSE,
-              axis = "y",
-              axis_title = FALSE,
-              axis_text = "y")+
-  guides(fill="none") + theme(text = element_text(size = 25)) + theme(plot.subtitle=element_text(size=18))
 
 
 ##### Plot 12 --- Refugee returnee trends in last 5 years
@@ -512,29 +296,11 @@ Plot12 <- poc_2014_my2023_myregion %>%
   filter(year %in% c("2019","2020","2021","2022","mid_2023"))
 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot12.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot12_returnee_ref.Rdata"))
 save(Plot12, file = file_path)
 
 
-ggplot(Plot12) +
-  geom_line(aes(
-    x = year,
-    y = `Returnees (Refugee)`,
-    group=1),
-    size = 1,
-    color = unhcr_pal(n = 1, "pal_blue")) +
-  geom_text(aes(
-    x = year,
-    y = `Returnees (Refugee)`,
-    label = scales::comma(round(`Returnees (Refugee)`, -2)),
-    vjust = -1), size = 9)+
-  labs(title = paste0("Refugee Returnees Trends in  ",  plot_title_region, " | ",MyYear - 4, " - mid_", MyYear),
-       y = "Number of people",
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  theme_unhcr(grid = FALSE,
-              axis = "x",
-              axis_title = "y",
-              axis_text = "x") + theme(text = element_text(size = 20))
+
 
 
 ##### Plot 13 --- IDP returnee trends in last 5 years
@@ -544,28 +310,10 @@ Plot13 <- poc_2014_my2023_myregion %>%
   filter(year %in% c("2019","2020","2021","2022","mid_2023"))
 
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot13.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot13_returnee_idp.Rdata"))
 save(Plot13, file = file_path)
 
-ggplot(Plot13) +
-  geom_line(aes(
-    x = year,
-    y = `Returnees (IDP)`,
-    group=1),
-    size = 1,
-    color = unhcr_pal(n = 1, "pal_blue")) +
-  geom_text(aes(
-    x = year,
-    y = `Returnees (IDP)`,
-    label = scales::comma(round(`Returnees (IDP)`, -2)),
-    vjust = -1), size = 9)+
-  labs(title = paste0("IDP Returnees Trends in  ",   plot_title_region, " | ",MyYear - 4, " - mid_", MyYear),
-       y = "Number of people",
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  theme_unhcr(grid = FALSE,
-              axis = "x",
-              axis_title = "y",
-              axis_text = "x") + theme(text = element_text(size = 20))
+
 
 #### plot 14 Myanmar situation  ######
 
@@ -593,23 +341,9 @@ mya$pop_type <- factor(mya$pop_type, levels = custom_order)
 
 Plot14 <- mya
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot14.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot14_mya.Rdata"))
 save(Plot14, file = file_path)
 
-ggplot(Plot14) +
-  geom_col(aes(x = pop_figure,
-               y = stack,
-               fill = pop_type), width = 0.7, position = "stack") +
-  geom_text(aes(x = pop_figure,
-                y =stack,
-                label = round(pop_figure / 1e6, 2)),
-            position = position_stack(vjust = 0.8), size=7) +
-  labs(title = paste0("Myanmar Situation | mid_", MyYear),
-       subtitle = "Number of people (millions)",
-       caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(expand = expansion(c(0, 0.1))) +
-  scale_fill_manual(values = c('Refugees and refugee-like' = "#0072BC", 'Asylum-Seekers' = "#0072BC", IDPs = "#0072BC", 'Non-Displaced Stateless' = "#0072BC", 'Returnees (IDP)' = "#0072BC", 'Displaced Stateless' = "#CCCCCC"), breaks = 'Displaced Stateless') +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
 
 #### Plot 15 Rohingya ####
 
@@ -627,26 +361,8 @@ RoHYear_last <- get(regionDatYear_last) %>%
 
 Plot15 <- rbind(RoHYear_last, RoHYear)
 
-file_path <- file.path("data-master/Plotdata\\", paste0("Plot15.Rdata"))
+file_path <- file.path("data-master/Plotdata\\", paste0("Plot15_rohingya.Rdata"))
 save(Plot15, file = file_path)
 
-ggplot(Plot15) +
-  geom_col(aes(x = Stateless_Total, 
-               y = fct_rev(reorder(asylumCountry, -Stateless_Total)), 
-               fill = as.character(Year)), 
-           position = position_dodge(0.7), width = 0.6)+
-  geom_text(aes(
-    x = Stateless_Total,
-    y = fct_rev(reorder(asylumCountry, -Stateless_Total)),
-    group = as.character(Year),
-    label = scales::comma(round(Stateless_Total,-2))),
-    position = position_dodge(width = 0.7),
-    hjust = -0.05, size = 6.5) +
-  scale_fill_unhcr_d(palette = "pal_unhcr") +
-  labs(title = paste0("Countries with Rohingya in ", plot_title_region," | ", MyYear-1," - mid_", MyYear),
-       caption = "Note: Both displaced and non-displaced Rohingya included for Myanmar\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
-  scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
-  scale_y_discrete(labels = scales::label_wrap(17)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size=18))
 
 
