@@ -19,7 +19,10 @@ source("functions/core.R")
 asr2022<- ASR(MyYear-1)
 mysr2023 <- MYSR(MyYear)
 
+## for MYSR Data
 Region_prep(MyRegion,MyYear,"Mid")
+
+## for ASR Data 
 Region_prep(MyRegion,MyYear-1,"End")
 
 

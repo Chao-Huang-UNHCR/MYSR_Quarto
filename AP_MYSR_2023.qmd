@@ -32,10 +32,12 @@ my_files <- dir_ls("data-master/Plotdata")
 
 lapply(my_files, load, .GlobalEnv)
 
-# Plot1
 MyRegion <- "Asia"
 MyYear <- 2023
 plot_title_region <- "Asia-Pacific"
+
+# Plot1
+
 
 region_total <- POC(MYSR(MyYear),region_d,MyYear)
 totalPoC <- round(as.numeric(region_total[which(region_total$region_d == MyRegion),"POC_Total"])/1e6,1)

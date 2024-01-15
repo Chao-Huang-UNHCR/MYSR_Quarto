@@ -4,7 +4,7 @@
 
 #### some specials for Asia-Pacific region when aggregating the data for COO or COA: HKG and MAC special districts for China. If you region have similar cases, please change the codes accordingly in Plot 3, 4, 5, 6, 7.
 
-#### the plot for specific situations will not apply for other regions
+#### the plot for specific situations (Afghanistan, Myanmar) will not apply for other regions
 
 
 library(refugees)
