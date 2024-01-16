@@ -26,6 +26,7 @@ library(popdata)
 library(tidyverse)
 library(readxl)
 library(fs)
+library(here)
 source("functions/core.R")
 
 my_files <- dir_ls("data-master/Plotdata")
@@ -53,7 +54,7 @@ totalsta_region <- round(as.numeric(Plot2[which(Plot2$Year == 'mid_2023'  & Plot
 decade_change <- round(as.numeric((Plot1_label[10,2] - Plot1_label[1,2])*100/Plot1_label[1,2]))
 
 ```
-![](\data-master\rbap_poc_bubble_map_mid2023.png)
+![](`r here::here("data-master","rbap_poc_bubble_map_mid2023.png")`)
 :::
 
 ::: {.column style="width: 20%; font-size: 40%;"}
@@ -65,7 +66,7 @@ decade_change <- round(as.numeric((Plot1_label[10,2] - Plot1_label[1,2])*100/Plo
 
 ::: columns
 ::: {.column width="80%"}
-![](\data-master\rbap_poc_status_map_mid2023.png)
+![](`r here::here("data-master","rbap_poc_status_map_mid2023.png")`)
 :::
 
 ::: {.column style="width: 20%; font-size: 40%;"}
@@ -471,7 +472,7 @@ The newly displaced IDPs during the first half of 2023 were in Myanmar (443,000)
 
 ## 
 
-![](\data-master\rbap_stateless_map.png){width="950" height="600" align="middle"}
+![](`r here::here("data-master","rbap_stateless_map.png")`){width="950" height="600" align="middle"}
 
 ## 
 
@@ -615,7 +616,7 @@ During the first half of 2023, some `r total_idp_return` IDPs returned mainly in
 
 ## 
 
-![](\data-master\afghans_global_mid2023.png){width="1000" height="650" align="middle"}
+![](`r here::here("data-master","afghans_global_mid2023.png")`){width="1000" height="650" align="middle"}
 
 ## 
 
@@ -946,7 +947,7 @@ MYA_poc <- round((sum(Plot14$pop_figure) - Plot14$pop_figure[Plot14$pop_type == 
 
 ## 
 
-![](\data-master\rbap_rohingya_map_mid2023.png){width="1000" height="700" align="middle"}
+![](`r here::here("data-master","rbap_rohingya_map_mid2023.png")`){width="1000" height="700" align="middle"}
 
 ## Rohingya in Asia-Pacific
 
