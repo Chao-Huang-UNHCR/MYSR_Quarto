@@ -16,7 +16,7 @@ page-layout: article
 #| label: poc-trend-decade
 #| fig-align: left
 #| fig-width: 8
-#| fig-height: 6
+#| fig-height: 6.5
 
 library(refugees)
 library(ggplot2)
@@ -27,6 +27,7 @@ library(tidyverse)
 library(readxl)
 library(fs)
 library(here)
+library(ggrepel)
 source("functions/core.R")
 
 my_files <- dir_ls("data-master/Plotdata")
@@ -81,6 +82,10 @@ decade_change <- round(as.numeric((Plot1_label[10,2] - Plot1_label[1,2])*100/Plo
 
 
 ```{r}
+#| label: poc-decade
+#| fig-align: left
+#| fig-width: 8
+#| fig-height: 5.5
 
 gg <- ggplot(Plot1) +
   geom_col(aes(x = year,
@@ -96,13 +101,11 @@ gg <- ggplot(Plot1) +
   labs(title = paste0("People UNHCR protects and/or assists in the ",plot_title_region, " Region | ", MyYear - 9," - mid_", MyYear),
        y = "Number of people (million)")+
   theme_unhcr(grid = FALSE,
-              axis_title = "y")
+              axis_title = "y", axis="x")
 
-gg + geom_text(size = 9,
-               data = Plot1_label, 
+gg + geom_text(data = Plot1_label, 
                aes(x = year, y = total_poc, label = round(total_poc, 1)), 
-               vjust = -0.5) + 
-  theme(text = element_text(size = 18)) 
+               vjust = -0.5) 
 
 ```
 :::
@@ -115,11 +118,11 @@ gg + geom_text(size = 9,
 ## Population figures in Asia-Pacific
 
 ::: columns
-::: {.column width="80%"}
+::: {.column width="82%"}
 ```{r}
 #| label: poc-2022-mysr2023
 #| fig-align: left
-#| fig-width: 8
+#| fig-width: 8.5
 #| fig-height: 6
 ggplot(Plot2) +
   geom_col(aes(x = pop_figure, 
@@ -132,14 +135,13 @@ ggplot(Plot2) +
     group = as.character(Year),
     label = scales::comma(round(pop_figure,-2))),
     position = position_dodge(width = 0.7),
-    hjust = -0.05, size = 6.5) +
+    hjust = -0.05) +
   scale_fill_unhcr_d(palette = "pal_unhcr") +
   labs(title = paste0("Population Categories in ", plot_title_region, " | ", MyYear-1, " - mid_", MyYear),
-       caption = "Note: Stateless persons have been included in both stateless and their respective displacement categories\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
+       caption = "Note: Stateless persons have been included in both stateless and their respective displacement categories<br>Source: UNHCR Refugee Data Finder<br>© UNHCR, The UN Refugee Agency") +
   scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
   scale_y_discrete(labels = scales::label_wrap(17)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") +
-  theme(text = element_text(size = 18)) 
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(plot.margin = unit(c(0, 0, 6, 0), "lines"))
 
 # Plot2
 fd_change <- round((sum(Plot2$pop_figure[Plot2$Year == 'mid_2023' & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers', 'IDPs')])  -  sum(Plot2$pop_figure[Plot2$Year == 2022 & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers', 'IDPs')]))*100 / sum(Plot2$pop_figure[Plot2$Year == 2022 & Plot2$pop_type %in% c('Refugees and Refugee-like', 'Asylum-Seekers', 'IDPs')]),1)
@@ -158,7 +160,7 @@ idp_new <- round((sum(Plot2$pop_figure[Plot2$Year == 'mid_2023' & Plot2$pop_type
 ```
 :::
 
-::: {.column style="width: 20%; font-size: 40%;"}
+::: {.column style="width: 18%; font-size: 40%;"}
 <br><br><br> - **`r fd_change`% increase** in the total number of forcibly displaced people compared to end-2022 <br> <br> - Refugees (including people in refugee-like situation) and asylum-seekers increased by `r ref_asy_change`% from `r ref_asy_previous`M to `r ref_asy_new`M <br> <br> - IDPs increased to `r idp_new`M, a **`r idp_change`% increase** from `r idp_previous`M at end-2022
 :::
 :::
@@ -172,19 +174,27 @@ idp_new <- round((sum(Plot2$pop_figure[Plot2$Year == 'mid_2023' & Plot2$pop_type
 ```{r}
 #| label: refugees-coo
 #| fig-align: left
-#| fig-width: 8
-#| fig-height: 6
+#| fig-width: 8.5
+#| fig-height: 5.5
+
+rank_ref_orig <- Plot3 %>% group_by(originCountry) %>% summarise(total_ref = sum(ref_figure)) %>% arrange(desc(total_ref))
 
 ggplot(Plot3) +
   geom_col(aes(x = ref_figure,
                y = reorder(originCountry, ref_figure),
                fill = pop_type), width = 0.7) +
-  geom_text(data = filter(Plot3, ref_figure > 40000),
+  geom_text(data = filter(Plot3, !(originCountry %in% Plot3$originCountry[3:5])),
             aes(x = ref_figure,
                 y = reorder(originCountry, ref_figure),
                 group = pop_type,
                 label = round(ref_figure / 1e6, 2)),
-            position = position_stack(vjust = 0.75), size = 6) +
+            position = position_stack(vjust = 0.75)) +
+  geom_text_repel(data = filter(Plot3, ref_figure > 1000, originCountry %in% Plot3$originCountry[3:5]),
+            aes(x = ref_figure,
+                y = reorder(originCountry, ref_figure),
+                group = pop_type,
+                label = round(ref_figure / 1e6, 2)),
+            position = position_stack(vjust = 0.75)) +
   labs(title = paste0("Refugees and people in refugee-like situations from ",  plot_title_region, " | mid_", MyYear),
        subtitle = "Number of people (millions)",
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
@@ -192,7 +202,7 @@ ggplot(Plot3) +
   scale_fill_unhcr_d(palette = "pal_unhcr",
                      nmax = 10,
                      order = c(2, 1)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y")
 
 #Plot3
 
@@ -224,7 +234,7 @@ mya_ref_asia_percent <- round((sum(mya_ref_asia$Refugees)/sum(mya_ref$Refugees))
 #| label: refugees-coo-sdg
 #| fig-align: left
 #| fig-width: 8
-#| fig-height: 6
+#| fig-height: 5.5
 
 ggplot(Plot4) + 
   geom_col(aes(x = reorder(country, sdg), y = sdg),
@@ -235,13 +245,14 @@ ggplot(Plot4) +
   geom_text(aes(x = country, 
                 y = sdg, 
                 label = scales::comma(sdg), 
-                hjust = -0.1), size = 7)+
+                hjust = -0.1))+
   scale_y_continuous(expand = expansion(c(0,0.1)))+
   theme_unhcr(grid = FALSE,
               axis = "y",
               axis_title = FALSE,
-              axis_text = "y") + theme(text = element_text(size=20))
+              axis_text = "y") 
 
+#Plot 4
 sdg1_ctry <- Plot4$country[1]
 sdg1_value <- format(as.numeric(Plot4$sdg[1]), big.mark = ",")
 
@@ -274,19 +285,26 @@ sdg5_value <- format(as.numeric(Plot4$sdg[5]), big.mark = ",")
 ```{r}
 #| label: refugees-coa
 #| fig-align: left
-#| fig-width: 8
-#| fig-height: 6
+#| fig-width: 9
+#| fig-height: 5.5
+
+rank_ref_asy <- Plot5 %>% group_by(asylumCountry) %>% summarise(total_ref = sum(ref_figure)) %>% arrange(desc(total_ref))
 
 ggplot(Plot5) +
   geom_col(aes(x = ref_figure,
                y = reorder(asylumCountry, ref_figure),
                fill = pop_type), width = 0.7) +
-  geom_text(data = filter(Plot5, ref_figure > 40000),
+  geom_text(data = filter(Plot5, ref_figure > 1000, !(asylumCountry %in% Plot5$asylumCountry[4:5])),
             aes(x = ref_figure,
                 y = reorder(asylumCountry, ref_figure),
                 group = pop_type,
                 label = round(ref_figure / 1e6, 2)),
-            position = position_stack(vjust = 0.5), size = 5.5) +
+            position = position_stack(vjust = 0.6)) +
+    geom_text_repel(data = filter(Plot5, ref_figure > 1000, asylumCountry %in% Plot5$asylumCountry[4:5]),
+            aes(x = ref_figure,
+                y = reorder(asylumCountry, ref_figure),
+                group = pop_type,
+                label = round(ref_figure / 1e6, 2))) +
   labs(title = paste0("Refugees and people in refugee-like situations hosted in ",  plot_title_region, " | mid_", MyYear),
        subtitle = "Number of people (millions)",
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
@@ -294,7 +312,7 @@ ggplot(Plot5) +
   scale_fill_unhcr_d(palette = "pal_unhcr",
                      nmax = 10,
                      order = c(2, 1)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y")
 
 #Plot5
 totalIRN_host <- round((sum(Plot5$ref_figure[Plot5$asylumCountry == 'Iran (Islamic Rep. of)']))/1e6,1)
@@ -331,7 +349,7 @@ ggplot(Plot6) +
     x = Asylum_Seekers,
     y = reorder(originCountry, Asylum_Seekers),
     label = scales::comma(round(Asylum_Seekers, -2)),
-    hjust = -0.1), size = 7) +
+    hjust = -0.1)) +
   labs(title = paste0("Refugees and people in refugee-like situations from ",  plot_title_region, " | mid_", MyYear),
        caption = "Note: China includes Hong Kong, Macau and Tibet\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   scale_x_continuous(expand = expansion(c(0, 0.1))) +
@@ -339,7 +357,7 @@ ggplot(Plot6) +
               axis = "y",
               axis_title = FALSE,
               axis_text = "y")+
-  guides(fill="none") + theme(text = element_text(size = 20))
+  guides(fill="none") 
 
 #Plot6
 asy_fromAP_ctry1 <- Plot6$originCountry[1]
@@ -384,7 +402,7 @@ ggplot(Plot7) +
     x = Asylum_Seekers,
     y = reorder(asylumCountry, Asylum_Seekers),
     label = scales::comma(round(Asylum_Seekers, -2)),
-    hjust = -0.1), size = 7) +
+    hjust = -0.1)) +
   labs(title = paste0("Refugees and people in refugee-like situations in ",  plot_title_region, " | mid_", MyYear),
        caption = "Note: China includes Hong Kong, Macau and Tibet\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   scale_x_continuous(expand = expansion(c(0, 0.1))) +
@@ -392,7 +410,7 @@ ggplot(Plot7) +
               axis = "y",
               axis_title = FALSE,
               axis_text = "y")+
-  guides(fill="none") + theme(text = element_text(size = 20))
+  guides(fill="none") 
 ```
 :::
 
@@ -406,11 +424,11 @@ ggplot(Plot7) +
 ## Internally Displaced Persons
 
 ::: columns
-::: {.column width="50%"}
+::: {.column width="45%"}
 ```{r}
 #| label: idp
 #| fig-align: left
-#| fig-width: 8
+#| fig-width: 7
 #| fig-height: 7
 
 
@@ -425,7 +443,7 @@ ggplot(Plot8) +
     x = year,
     y = IDPs,
     label = round(IDPs / 1e6, digits = 1),
-    vjust = -1), size=9)+
+    vjust = -1))+
   labs(title = paste0("IDP trends in  ",  plot_title_region, " | ", MyYear - 4, " - mid_", MyYear),
        y = "Number of people (millions)",
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
@@ -433,14 +451,14 @@ ggplot(Plot8) +
   theme_unhcr(grid = FALSE,
               axis = "x",
               axis_title = "y",
-              axis_text = "x") + theme(text = element_text(size = 25)) 
+              axis_text = "x")
 ```
 :::
 
-::: {.column style="width: 50%; font-size: 40%;"}
+::: {.column style="width: 55%; font-size: 40%;"}
 ```{r}
 #| fig-align: left
-#| fig-width: 8
+#| fig-width: 8.5
 #| fig-height: 7
 
 ggplot(Plot9) +
@@ -454,13 +472,13 @@ ggplot(Plot9) +
     group = as.character(Year),
     label = scales::comma(round(IDPs,-2))),
     position = position_dodge(width = 0.7),
-    hjust = -0.03, size = 6.5) +
+    hjust = -0.03) +
   scale_fill_unhcr_d(palette = "pal_unhcr") +
   labs(title = paste0("Countries with the most conflict-induced IDPs in\n", plot_title_region, " | ", MyYear-1," - mid_", MyYear),
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
   scale_y_discrete(labels = scales::label_wrap(17)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 25))
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(plot.margin = unit(c(0, 0, 4, 0), "lines"))
 
 ```
 
@@ -483,8 +501,8 @@ The newly displaced IDPs during the first half of 2023 were in Myanmar (443,000)
 ```{r}
 #| label: non-displaced-stateless
 #| fig-align: left
-#| fig-width: 8
-#| fig-height: 7
+#| fig-width: 7
+#| fig-height: 6
 
 ggplot(Plot10) +
   geom_col(aes(
@@ -496,7 +514,7 @@ ggplot(Plot10) +
     x = Stateless_Non_displaced,
     y = reorder(asylumCountry, Stateless_Non_displaced),
     label = scales::comma(round(Stateless_Non_displaced, -2)),
-    hjust = -0.05), size=8.5) +
+    hjust = -0.05)) +
   labs(title = paste0("Top Countries with Non-Displaced Stateless Persons in\n", plot_title_region, " | mid_", MyYear),
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   scale_x_continuous(expand = expansion(c(0, 0.1))) +
@@ -504,7 +522,7 @@ ggplot(Plot10) +
               axis = "y",
               axis_title = FALSE,
               axis_text = "y")+
-  guides(fill="none") + theme(text = element_text(size = 25)) + theme(plot.subtitle=element_text(size=18))
+  guides(fill="none")
 ```
 :::
 
@@ -514,8 +532,8 @@ ggplot(Plot10) +
 ```{r}
 #| label: displaced-stateless
 #| fig-align: right
-#| fig-width: 8
-#| fig-height: 7
+#| fig-width: 7
+#| fig-height: 6
 
 ggplot(Plot11) +
   geom_col(aes(
@@ -527,7 +545,7 @@ ggplot(Plot11) +
     x = Stateless_Displaced,
     y = reorder(asylumCountry, Stateless_Displaced),
     label = scales::comma(round(Stateless_Displaced, -2)),
-    hjust = -0.05), size=8.5) +
+    hjust = -0.05)) +
   labs(title = paste0("Top Countries with Displaced Stateless Persons in\n", plot_title_region, " | mid_", MyYear),
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   scale_x_continuous(expand = expansion(c(0, 0.1))) +
@@ -535,7 +553,7 @@ ggplot(Plot11) +
               axis = "y",
               axis_title = FALSE,
               axis_text = "y")+
-  guides(fill="none") + theme(text = element_text(size = 25)) + theme(plot.subtitle=element_text(size=18))
+  guides(fill="none") 
 ```
 :::
 :::
@@ -549,8 +567,8 @@ ggplot(Plot11) +
 ```{r}
 #| label: solutions
 #| fig-align: left
-#| fig-width: 8
-#| fig-height: 7
+#| fig-width: 7
+#| fig-height: 6
 
 ggplot(Plot12) +
   geom_line(aes(
@@ -563,14 +581,14 @@ ggplot(Plot12) +
     x = year,
     y = `Returnees (Refugee)`,
     label = scales::comma(round(`Returnees (Refugee)`, -2)),
-    vjust = -1), size = 9)+
+    vjust = -1))+
   labs(title = paste0("Refugee Returnees Trends in  ",  plot_title_region, " | ",MyYear - 4, " - mid_", MyYear),
        y = "Number of people",
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   theme_unhcr(grid = FALSE,
               axis = "x",
               axis_title = "y",
-              axis_text = "x") + theme(text = element_text(size = 20))
+              axis_text = "x") 
 
 #Plot12
 total_ref_return <- format(round((sum(Plot12$'Returnees (Refugee)'[Plot12$year == 'mid_2023'])),-2), big.mark = ",")
@@ -582,8 +600,8 @@ During the first half of 2023, some `r total_ref_return` refugees returned to th
 ::: {.column style="width: 50%; font-size: 40%;"}
 ```{r}
 #| fig-align: right
-#| fig-width: 8
-#| fig-height: 7
+#| fig-width: 7
+#| fig-height: 6
 ggplot(Plot13) +
   geom_line(aes(
     x = year,
@@ -595,14 +613,14 @@ ggplot(Plot13) +
     x = year,
     y = `Returnees (IDP)`,
     label = scales::comma(round(`Returnees (IDP)`, -2)),
-    vjust = -1), size = 9)+
+    vjust = -1))+
   labs(title = paste0("IDP Returnees Trends in  ",   plot_title_region, " | ",MyYear - 4, " - mid_", MyYear),
        y = "Number of people",
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   theme_unhcr(grid = FALSE,
               axis = "x",
               axis_title = "y",
-              axis_text = "x") + theme(text = element_text(size = 20)) 
+              axis_text = "x") 
 
 #Plot13
 total_idp_return <- format(round((sum(Plot13$'Returnees (IDP)'[Plot13$year == 'mid_2023'])),-2), big.mark = ",")
@@ -915,22 +933,28 @@ During the first half of 2023, some `r total_idp_return` IDPs returned mainly in
 #| label: myanmar-sit
 #| fig-align: left
 #| fig-width: 8
-#| fig-height: 6
+#| fig-height: 5.5
 
 ggplot(Plot14) +
   geom_col(aes(x = pop_figure,
                y = stack,
                fill = pop_type), width = 0.7, position = "stack") +
-  geom_text(aes(x = pop_figure,
+  geom_text(data = filter(Plot14, !(stack %in% Plot14$stack[5:6])),
+    aes(x = pop_figure,
                 y =stack,
                 label = round(pop_figure / 1e6, 2)),
-            position = position_stack(vjust = 0.7), size=6) +
+            position = position_stack(vjust = 0.7)) +
+  geom_text_repel(data = filter(Plot14, stack %in% Plot14$stack[5:6]),
+    aes(x = pop_figure,
+                y =stack,
+                label = round(pop_figure / 1e6, 2)),
+            position = position_stack(vjust = 0.7)) +
   labs(title = paste0("Myanmar Situation | mid_", MyYear),
        subtitle = "Number of people (millions)",
        caption = "Source: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   scale_x_continuous(expand = expansion(c(0, 0.1))) +
   scale_fill_manual(values = c('Refugees and refugee-like' = "#0072BC", 'Asylum-Seekers' = "#0072BC", IDPs = "#0072BC", 'Non-Displaced Stateless' = "#0072BC", 'Returnees (IDP)' = "#0072BC", 'Displaced Stateless' = "#CCCCCC"), breaks = 'Displaced Stateless') +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size = 20)) + theme(plot.subtitle=element_text(size=18))
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y")
 
 #Plot14
 
@@ -957,7 +981,7 @@ MYA_poc <- round((sum(Plot14$pop_figure) - Plot14$pop_figure[Plot14$pop_type == 
 #| label: rohingya
 #| fig-align: left
 #| fig-width: 8
-#| fig-height: 6
+#| fig-height: 5.5
 
 ggplot(Plot15) +
   geom_col(aes(x = Stateless_Total, 
@@ -970,13 +994,13 @@ ggplot(Plot15) +
     group = as.character(Year),
     label = scales::comma(round(Stateless_Total,-2))),
     position = position_dodge(width = 0.7),
-    hjust = -0.05, size = 6.5) +
+    hjust = -0.05) +
   scale_fill_unhcr_d(palette = "pal_unhcr") +
   labs(title = paste0("Countries with Rohingya in ", plot_title_region," | ", MyYear-1," - mid_", MyYear),
        caption = "Note: Both displaced and non-displaced Rohingya included for Myanmar\nSource: UNHCR Refugee Data Finder\n© UNHCR, The UN Refugee Agency") +
   scale_x_continuous(labels = scales::comma, expand = expansion(c(0, 0.1))) +
   scale_y_discrete(labels = scales::label_wrap(17)) +
-  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") + theme(text = element_text(size=18))
+  theme_unhcr(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") 
 
 #Plot15
 
