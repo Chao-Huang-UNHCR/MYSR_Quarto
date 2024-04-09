@@ -35,7 +35,6 @@ Popdata_iso <-
 
 # ASR  ----------------------------------------------
 ASR <- function(YEAR){
-  
   ############# REFUGEE #########
   # download refugee and refugee-like table
   ref <- pd_asr(table = "refugees", year = YEAR, quiet = TRUE)
@@ -49,6 +48,7 @@ ASR <- function(YEAR){
   
   ### concatenate the 2 tables
   concat_ref <- rbind(ref,ref_like)
+  concat_ref <- as_tibble(concat_ref)
   
   ### aggregate refugee figures by country of asylum and country of origin
   refugee<- concat_ref[,c('asylum','origin','yearEndTotal')] %>%
@@ -130,9 +130,12 @@ ASR <- function(YEAR){
     mutate(totalReturnees = as.numeric(totalReturnees)) %>% 
     group_by(asylum, origin) %>% summarise(returns = sum(totalReturnees))
   
+  volrep <- concat_ref %>% group_by(asylum, origin) %>% summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
   
-  volrep <- concat_ref[concat_ref$decreasesVoluntaryRepatriationTotal>0,]
-  volrep <- volrep  %>% group_by(asylum, origin) %>% summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
+  volrep <- volrep[volrep$decreasesVoluntaryRepatriationTotal>0,]
+  volrep <- volrep  %>% group_by(asylum, origin) %>% 
+    mutate(decreasesVoluntaryRepatriationTotal = as.numeric(decreasesVoluntaryRepatriationTotal)) %>% 
+    summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
   
   
   allrep <- merge(returnee,volrep[,c('asylum','origin','decreasesVoluntaryRepatriationTotal')],by=c('asylum','origin'),all=TRUE)
@@ -151,9 +154,12 @@ ASR <- function(YEAR){
   
   ########## Stateless ########
   state <- pd_asr(table="stateless",year=YEAR, quiet = TRUE)
-  stategroup <- state %>% group_by(asylum, origin) %>% summarise(stateless = sum(totalYearEnd))
+  state <- state %>%     mutate(totalYearEnd = as.numeric(totalYearEnd))
+  stategroup <- state %>% 
+    group_by(asylum, origin) %>% summarise(stateless = sum(totalYearEnd))
   
-  deduct <- state[(state$displacementStatus !='NDP')&(state$totalYearEnd>0),]%>%group_by(asylum,origin) %>% summarise(deduct = sum(totalYearEnd))
+  deduct <- state[(state$displacementStatus !='NDP')&(state$totalYearEnd>0),]%>% 
+  group_by(asylum,origin) %>% summarise(deduct = sum(totalYearEnd))
   
   ######## OIP##########
   
@@ -167,8 +173,9 @@ ASR <- function(YEAR){
   
   ooc<- pd_asr(table="other",year=YEAR,quiet = TRUE)
   ooc$origin[ooc$origin == "TIB"] <- "CHI"
+  ooc$totalYearEnd <- as.numeric(ooc$totalYearEnd)
   oocgroup <- ooc %>%
-    mutate(totalYearEnds = as.numeric(totalYearEnd))%>%
+    mutate(totalYearEnd = as.numeric(totalYearEnd))%>%
     group_by(asylum,origin) %>% summarise(othersOfConcern = sum(totalYearEnd))
   
   #### Combine #####
@@ -288,8 +295,9 @@ MYSR <- function(YEAR){
     mutate(totalMidYear = as.numeric(totalMidYear)) %>% 
     group_by(asylum, origin) %>% summarise(returns = sum(totalMidYear))
   
+  volrep <- concat_ref %>% group_by(asylum, origin) %>% summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
   
-  volrep <- concat_ref[concat_ref$decreasesVoluntaryRepatriationTotal>0,]
+  volrep <- volrep[volrep$decreasesVoluntaryRepatriationTotal>0,]
   volrep <- volrep  %>% group_by(asylum, origin) %>% summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
   
   
