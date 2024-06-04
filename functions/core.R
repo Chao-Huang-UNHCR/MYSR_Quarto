@@ -130,7 +130,7 @@ ASR <- function(YEAR){
     mutate(totalReturnees = as.numeric(totalReturnees)) %>% 
     group_by(asylum, origin) %>% summarise(returns = sum(totalReturnees))
   
-  volrep <- concat_ref %>% group_by(asylum, origin) %>% summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
+  volrep <- ref %>% group_by(asylum, origin) %>% summarise(decreasesVoluntaryRepatriationTotal = sum(decreasesVoluntaryRepatriationTotal))
   
   volrep <- volrep[volrep$decreasesVoluntaryRepatriationTotal>0,]
   volrep <- volrep  %>% group_by(asylum, origin) %>% 
@@ -144,11 +144,21 @@ ASR <- function(YEAR){
   
   allrep$Returnee <- ifelse(allrep$returns>allrep$decreasesVoluntaryRepatriationTotal,allrep$returns,allrep$decreasesVoluntaryRepatriationTotal)
   
-  ret_final <- allrep %>% select(asylum, origin, Returnee) %>% 
+  ret_ref <- allrep %>% select(asylum, origin, Returnee) %>% 
     mutate(asylum = origin,
            Returnee = as.numeric(Returnee)) %>% 
     group_by(asylum,origin) %>% 
     summarise(Returnee = sum(Returnee))
+  
+  ret_reflike <- ref_like %>% group_by(asylum, origin) %>% summarise(Returnee = sum(decreasesVoluntaryRepatriationTotal)) %>% 
+    mutate(asylum = origin,
+           Returnee = as.numeric(Returnee)) %>% 
+    filter(Returnee > 0)
+  
+  ret_final <- rbind(ret_ref, ret_reflike)
+  ret_final <- ret_final %>% group_by(asylum,origin) %>% 
+    summarise(Returnee = sum(Returnee))
+    
   
   # colnames(ret_final) <- c("origin", "asylum", "Returnee")
   
