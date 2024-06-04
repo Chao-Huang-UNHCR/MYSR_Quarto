@@ -1,4 +1,4 @@
-# pak::pkg_install("populationstatistics/popdata@fix-oauth")
+remotes::install_github("populationstatistics/popdata")
 library(tidyverse)
 library(popdata)
 library(readxl)
@@ -36,19 +36,10 @@ load("data-raw/Asia_2023_clean_data.Rdata")
 COA <- POC(Asia_2023_clean_data, asylumCountry, MyYear)
 COO <- POC(Asia_2023_clean_data, originCountry, MyYear)
 
-m2023ap <- POC(mysr2023 %>% filter(region_d == MyRegion) %>% 
-                 arrange(asylum, origin),asylumCountry, MyYear)
-missingCOA <- m2023ap %>%   filter(asylumCountry == "Australia")
-
-COA_AP <- rbind(COA,missingCOA)
-COA_AP$region = "Asia"
-summary(COA_AP)
-
-AP2023 <- POC(COA_AP,region, MyYear )
 
 ### PoC and FDP for all COO
 
-COO <- POC(MYSR(MyYear), originCountry, MyYear)
+COO <- POC(ASR(MyYear), originCountry, MyYear)
 
 ### refugee population ranking
 
@@ -61,3 +52,30 @@ ranking_COO <- COO %>% mutate(Refugee_Mandate = Refugees + OIP) %>%
   select(Year,originCountry, Refugee_Mandate, Refugees, OIP) %>% 
   arrange(desc(Refugee_Mandate))
 
+##missing Australia
+m2023ap <- POC(mysr2023 %>% filter(region_d == MyRegion) %>% 
+                 arrange(asylum, origin),asylumCountry, MyYear)
+missingCOA <- m2023ap %>%   filter(asylumCountry == "Australia")
+
+COA_AP <- rbind(COA,missingCOA)
+COA_AP$region = "Asia"
+summary(COA_AP)
+
+AP2023 <- POC(COA_AP,region, MyYear )
+
+## Rohingya population
+
+
+## Stateless -  granted nationality
+
+state <- pd_asr(table="stateless",year=MyYear-4, quiet = TRUE)
+state <- state %>% filter(decreasesConfirmationNationality > 0) %>% 
+  group_by(asylum) %>% summarise(decreasesConfirmationNationality = sum(decreasesConfirmationNationality)) %>% 
+  mutate(origin = "STA")
+
+Nationality <- state %>%  Popdata_iso() %>% 
+  filter(region_d == MyRegion) %>% 
+  group_by(asylum) %>% 
+    summarise(
+              Nationality = sum(decreasesConfirmationNationality))
+sum(Nationality$Nationality)
